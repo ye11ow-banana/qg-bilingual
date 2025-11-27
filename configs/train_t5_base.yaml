@@ -1,0 +1,23 @@
+model_name: "t5-base"
+task: "qg-answer-aware"
+train_file: "data/artifacts/train.jsonl"
+val_file:   "data/artifacts/val.jsonl"
+text_field: "context"
+answer_field: "answer"
+target_field: "question"
+max_input_len: 512
+max_target_len: 48
+per_device_train_batch_size: 8
+per_device_eval_batch_size: 8
+lr: 3e-5
+num_train_epochs: 3
+warmup_ratio: 0.03
+lora: true
+lora_r: 16
+fp16: true
+decoding:
+  strategy: "beam"
+  num_beams: 5
+  length_penalty: 1.1
+  no_repeat_ngram_size: 3
+seed: 42

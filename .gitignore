@@ -1,0 +1,91 @@
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+
+# --- Python bytecode ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Package/build artifacts ---
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# --- Logs & runtime files ---
+logs/
+*.log
+*.tmp
+tmp/
+celerybeat-schedule
+*.pid
+
+# --- Test & coverage ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# --- Type checking / linters / tools ---
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.cache/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- IDE / Editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Environment & secrets ---
+.env
+.env.*
+!.env.example
+*.secret
+secrets.json
+
+# --- FastAPI / app-specific ---
+# (Static/media if generated at runtime)
+staticfiles/
+media/
+uploads/
+
+# --- ML / LLM / PyTorch specific ---
+# Local datasets
+data/
+datasets/
+
+# Model weights & checkpoints
+models/
+checkpoints/
+outputs/
+runs/
+wandb/
+mlruns/
+
+# Hugging Face / other caches inside repo
+.cache/
+huggingface/
+transformers_cache/
+
+# --- Docker ---
+*.env.docker
+docker-compose.override.yml
+
+# --- Misc ---
+notes/
+*.bak

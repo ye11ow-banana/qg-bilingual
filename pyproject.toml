@@ -1,0 +1,43 @@
+[project]
+name = "qg-bilingual"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "m.yakubets", email = "m.yakubets@zakaz.global" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "accelerate>=1.12.0",
+    "datasets>=4.4.1",
+    "evaluate>=0.4.6",
+    "fastapi>=0.122.0",
+    "gradio>=6.0.1",
+    "nltk>=3.9.2",
+    "numpy>=2.3.5",
+    "peft>=0.18.0",
+    "protobuf<5",
+    "pydantic>=2.12.4",
+    "rouge-score>=0.1.2",
+    "sacrebleu>=2.5.1",
+    "scikit-learn>=1.7.2",
+    "scipy>=1.16.3",
+    "torch>=2.2",
+    "transformers>=4.57.3",
+    "uvicorn[standard]>=0.38.0",
+]
+
+[project.scripts]
+qg-bilingual = "qg_bilingual:main"
+
+[build-system]
+requires = ["uv_build>=0.9.12,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "black>=25.11.0",
+    "jupyter>=1.1.1",
+    "pre-commit>=4.5.0",
+    "ruff>=0.14.6",
+]
