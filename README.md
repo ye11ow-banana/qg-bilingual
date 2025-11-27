@@ -16,6 +16,11 @@ Run the answer-aware question generation training loop with the provided YAML co
 uv run python -m qg_bilingual.train --config configs/train_t5_base.yaml
 ```
 
+Evaluation uses a QA model for EM/F1/pass-rate; switch to the multilingual
+checkpoint for UA validation by setting `qa_eval_language: "uk"` (the default EN
+checkpoint is `distilbert-base-uncased-distilled-squad`, the multilingual one is
+`deepset/xlm-roberta-large-squad2`).
+
 Each JSONL row should look like:
 
 ```json

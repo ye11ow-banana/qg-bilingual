@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from collections import Counter
 from string import punctuation
-from typing import Mapping, MutableSequence, Sequence
+from typing import Mapping, MutableSequence, Optional, Sequence, Tuple
 
 from evaluate import load as load_metric
 from transformers import pipeline
@@ -43,15 +43,37 @@ def _f1_score(prediction: str, ground_truth: str) -> float:
     return 2 * precision * recall / (precision + recall)
 
 
+def _find_answer_start(context: str, answer: str) -> Optional[int]:
+    """
+    Approximate the character start position of ``answer`` inside ``context``.
+
+    SQuAD-style EM/F1 does not rely on ``answer_start``, but populating it helps
+    debugging and keeps references well-formed. Returns ``None`` if not found.
+    """
+
+    if not answer:
+        return None
+
+    lowered_context = context.lower()
+    lowered_answer = answer.lower()
+    position = lowered_context.find(lowered_answer)
+    return position if position >= 0 else None
+
+
 def qg2qa_metrics(
     val_records: Sequence[object],
     qa_ckpt: str = "distilbert-base-uncased-distilled-squad",
     f1_thr: float = 0.8,
     conf_thr: float = 0.35,
+    *,
+    batch_size: int = 16,
+    device: Optional[int] = None,
 ) -> dict:
     """Compute EM/F1 by answering generated questions with a QA model."""
 
-    qa_model = pipeline("question-answering", model=qa_ckpt, tokenizer=qa_ckpt)
+    qa_model = pipeline(
+        "question-answering", model=qa_ckpt, tokenizer=qa_ckpt, device=device
+    )
     qa_metric = load_metric("squad")
 
     predictions: MutableSequence[dict] = []
@@ -59,18 +81,49 @@ def qg2qa_metrics(
     f1_scores: MutableSequence[float] = []
     confidences: MutableSequence[float] = []
 
-    for idx, record in enumerate(val_records):
-        question = _get_value(record, "question")
-        context = _get_value(record, "context")
-        answer = _get_value(record, "answer")
+    batched_inputs: Sequence[Tuple[int, dict]] = [
+        (
+            idx,
+            {
+                "question": _get_value(record, "question"),
+                "context": _get_value(record, "context"),
+                "answer": _get_value(record, "answer"),
+            },
+        )
+        for idx, record in enumerate(val_records)
+    ]
 
-        result = qa_model(question=question, context=context)
+    results = qa_model(
+        [
+            {"question": row[1]["question"], "context": row[1]["context"]}
+            for row in batched_inputs
+        ],
+        batch_size=batch_size,
+    )
+
+    if isinstance(results, Mapping):
+        results = [results]
+
+    for (idx, payload), result in zip(batched_inputs, results):
+        question = payload["question"]
+        context = payload["context"]
+        answer = payload["answer"]
+
         pred_text = str(result.get("answer", ""))
         confidence = float(result.get("score", 0.0))
+        answer_start = _find_answer_start(context, answer)
 
         predictions.append({"id": str(idx), "prediction_text": pred_text})
         references.append(
-            {"id": str(idx), "answers": {"text": [answer], "answer_start": [0]}}
+            {
+                "id": str(idx),
+                "answers": {
+                    "text": [answer],
+                    # SQuAD EM/F1 ignores start, but we keep a best-effort position
+                    # for completeness and debugging.
+                    "answer_start": [answer_start if answer_start is not None else 0],
+                },
+            }
         )
         f1_scores.append(_f1_score(pred_text, answer))
         confidences.append(confidence)

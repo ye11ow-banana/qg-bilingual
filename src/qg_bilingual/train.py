@@ -168,6 +168,13 @@ def evaluate(
     return metrics, generated_texts
 
 
+def _select_qa_checkpoint(cfg: TrainConfig) -> str:
+    lang = cfg.qa_eval_language.lower()
+    if lang in {"en", "eng", "english"}:
+        return cfg.qa_checkpoint_en
+    return cfg.qa_checkpoint_multilingual
+
+
 def train(cfg: TrainConfig) -> Dict[str, float]:
     accelerator = Accelerator(
         gradient_accumulation_steps=cfg.gradient_accumulation_steps,
@@ -193,6 +200,8 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
 
     rouge_metric = load_metric("rouge")
     bleu_metric = load_metric("sacrebleu")
+    qa_ckpt = _select_qa_checkpoint(cfg)
+    qa_device = accelerator.device.index if accelerator.device.type == "cuda" else None
 
     optimizer = AdamW(model.parameters(), lr=cfg.lr)
 
@@ -254,7 +263,16 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
                     }
                     for record, question in zip(val_records, generated_questions)
                 ]
-                eval_metrics.update(qg2qa_metrics(qa_records))
+                eval_metrics.update(
+                    qg2qa_metrics(
+                        qa_records,
+                        qa_ckpt=qa_ckpt,
+                        f1_thr=cfg.qa_f1_threshold,
+                        conf_thr=cfg.qa_conf_threshold,
+                        batch_size=cfg.qa_batch_size,
+                        device=qa_device,
+                    )
+                )
                 accelerator.print(f"Step {total_steps}: {eval_metrics}")
                 if eval_metrics["rougeL"] > best_rouge:
                     best_rouge = eval_metrics["rougeL"]
@@ -276,7 +294,16 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
         }
         for record, question in zip(val_records, generated_questions)
     ]
-    final_metrics.update(qg2qa_metrics(qa_records))
+    final_metrics.update(
+        qg2qa_metrics(
+            qa_records,
+            qa_ckpt=qa_ckpt,
+            f1_thr=cfg.qa_f1_threshold,
+            conf_thr=cfg.qa_conf_threshold,
+            batch_size=cfg.qa_batch_size,
+            device=qa_device,
+        )
+    )
     save_model(accelerator, model, tokenizer, cfg.output_dir, cfg.lora)
     save_metrics(cfg.output_dir, final_metrics)
     return final_metrics
