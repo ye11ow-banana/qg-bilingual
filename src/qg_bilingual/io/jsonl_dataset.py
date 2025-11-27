@@ -35,7 +35,13 @@ def load_jsonl(path: Path) -> List[JsonlRecord]:
 
 
 def format_answer_aware_prompt(answer: str, context: str) -> str:
-    return f"generate question: answer: {answer} context: {context}"
+    return (
+        "<question_generation>\n"
+        "  <instruction>Generate a question for the provided answer and context.</instruction>\n"
+        f"  <context>{context}</context>\n"
+        f"  <answer>{answer}</answer>\n"
+        "</question_generation>"
+    )
 
 
 class QGJsonlDataset(Dataset):

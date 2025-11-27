@@ -30,6 +30,12 @@ class TrainConfig:
     output_dir: Path
     seed: int = 42
     gradient_accumulation_steps: int = 1
+    qa_checkpoint_en: str = "distilbert-base-uncased-distilled-squad"
+    qa_checkpoint_multilingual: str = "deepset/xlm-roberta-large-squad2"
+    qa_eval_language: str = "en"
+    qa_f1_threshold: float = 0.8
+    qa_conf_threshold: float = 0.35
+    qa_batch_size: int = 16
 
     @classmethod
     def from_yaml(cls, path: Path) -> "TrainConfig":
@@ -56,6 +62,16 @@ class TrainConfig:
             output_dir=Path(raw.get("output_dir", "outputs/train_run")),
             seed=int(raw.get("seed", 42)),
             gradient_accumulation_steps=int(raw.get("gradient_accumulation_steps", 1)),
+            qa_checkpoint_en=str(
+                raw.get("qa_checkpoint_en", "distilbert-base-uncased-distilled-squad")
+            ),
+            qa_checkpoint_multilingual=str(
+                raw.get("qa_checkpoint_multilingual", "deepset/xlm-roberta-large-squad2")
+            ),
+            qa_eval_language=str(raw.get("qa_eval_language", "en")),
+            qa_f1_threshold=float(raw.get("qa_f1_threshold", 0.8)),
+            qa_conf_threshold=float(raw.get("qa_conf_threshold", 0.35)),
+            qa_batch_size=int(raw.get("qa_batch_size", 16)),
         )
 
 

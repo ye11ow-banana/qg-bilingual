@@ -18,6 +18,12 @@ fp16: true
 eval_every_steps: 500
 output_dir: "models/t5_base_aware"
 gradient_accumulation_steps: 1
+qa_checkpoint_en: "distilbert-base-uncased-distilled-squad"
+qa_checkpoint_multilingual: "deepset/xlm-roberta-large-squad2"
+qa_eval_language: "en"
+qa_f1_threshold: 0.8
+qa_conf_threshold: 0.35
+qa_batch_size: 16
 decoding:
   strategy: "beam"
   num_beams: 5
