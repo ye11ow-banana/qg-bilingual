@@ -29,7 +29,8 @@ qg2qa:
   device: "auto"  # cuda|cpu|auto
 ```
 
-For Ukrainian validation, set `lang: "ua"` to pick the multilingual QA model.
+For Ukrainian validation, set `lang: "ua"` to pick the multilingual QA model;
+using the EN checkpoint for UA will under-report EM/F1.
 
 Each JSONL row should look like:
 
@@ -66,6 +67,7 @@ After validation, `models/.../metrics_val.json` contains combined text and QG→
   "qa_pass_rate": 0.44,
   "qa_model": "distilbert-base-uncased-distilled-squad",
   "lang": "en",
+  "qa_device": "cuda",
   "f1_thr": 0.8,
   "conf_thr": 0.35
 }

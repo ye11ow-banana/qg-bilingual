@@ -78,7 +78,10 @@ def qg2qa_metrics(
     """Compute EM/F1 by answering generated questions with a QA model."""
 
     qa_ckpt = _select_qa_checkpoint(lang, qa_ckpt_en, qa_ckpt_multi)
-    resolved_device = _resolve_device(device)
+    resolved_device, device_label = _resolve_device(device)
+
+    LOGGER.info("QA checkpoint: %s (lang=%s)", qa_ckpt, lang)
+    LOGGER.info("QA device resolved to %s", device_label)
 
     qa_model = pipeline(
         "question-answering",
@@ -158,6 +161,7 @@ def qg2qa_metrics(
         "qa_confidence_distribution": list(confidences),
         "qa_model": qa_ckpt,
         "lang": lang,
+        "qa_device": device_label,
         "f1_thr": f1_thr,
         "conf_thr": conf_thr,
     }
@@ -174,17 +178,27 @@ def _select_qa_checkpoint(lang: str, qa_ckpt_en: str, qa_ckpt_multi: str) -> str
     return qa_ckpt_multi
 
 
-def _resolve_device(device: Optional[object]) -> Optional[object]:
+def _resolve_device(device: Optional[object]) -> Tuple[Optional[object], str]:
     if device is None:
-        return None
+        selected = 0 if torch.cuda.is_available() else -1
+        return selected, "cuda" if selected == 0 else "cpu"
+
     if isinstance(device, str):
         normalized = device.lower()
         if normalized == "auto":
-            return 0 if torch.cuda.is_available() else -1
+            selected = 0 if torch.cuda.is_available() else -1
+            return selected, "cuda" if selected == 0 else "cpu"
         if normalized == "cuda":
-            return 0
+            return 0, "cuda"
         if normalized == "cpu":
-            return -1
-        return device
-    return device
+            return -1, "cpu"
+        return device, device
+
+    if isinstance(device, torch.device):
+        label = device.type
+        if device.index is not None:
+            label = f"{label}:{device.index}"
+        return device, label
+
+    return device, str(device)
 
