@@ -22,8 +22,32 @@ Each JSONL row should look like:
 {"context": "<passage text>", "answer": "<gold answer>", "question": "<gold question>"}
 ```
 
-The model is prompted with:
+The model is prompted with a unified XML-style template:
 
 ```
-generate question: answer: <answer> context: <context>
+<question_generation>
+  <instruction>Generate a question for the provided answer and context.</instruction>
+  <context><passage text></context>
+  <answer><gold answer></answer>
+</question_generation>
+```
+
+Example generated question (toy):
+
+```
+Input answer/context -> "Paris" / "France's capital is known for the Eiffel Tower."
+Generated question -> "What is the capital city of France famous for the Eiffel Tower?"
+```
+
+After validation, `models/.../metrics_val.json` contains combined text and QG→QA metrics, e.g.:
+
+```json
+{
+  "rouge1": 0.61,
+  "rougeL": 0.58,
+  "bleu": 24.3,
+  "em": 32.1,
+  "f1": 48.7,
+  "qa_pass_rate": 0.44
+}
 ```

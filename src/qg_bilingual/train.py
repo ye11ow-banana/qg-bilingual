@@ -5,7 +5,7 @@ import json
 import logging
 import math
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Sequence, Tuple
 
 import torch
 from accelerate import Accelerator
@@ -23,6 +23,7 @@ from transformers import (
 )
 
 from qg_bilingual.io.jsonl_dataset import QGJsonlDataset, load_jsonl
+from qg_bilingual.eval.qg2qa import qg2qa_metrics
 from qg_bilingual.utils.config import TrainConfig
 
 LOGGER = logging.getLogger(__name__)
@@ -54,7 +55,7 @@ def build_model(cfg: TrainConfig, tokenizer) -> AutoModelForSeq2SeqLM:
 def prepare_dataloaders(
     cfg: TrainConfig,
     tokenizer,
-) -> Tuple[DataLoader, DataLoader]:
+) -> Tuple[DataLoader, DataLoader, Sequence, Sequence]:
     train_records = load_jsonl(cfg.train_file)
     val_records = load_jsonl(cfg.val_file)
 
@@ -89,7 +90,26 @@ def prepare_dataloaders(
         collate_fn=collator,
         generator=generator,
     )
-    return train_loader, val_loader
+    return train_loader, val_loader, train_records, val_records
+
+
+def compute_metrics(
+    predictions: Sequence[str],
+    references: Sequence[str],
+    rouge_metric,
+    bleu_metric,
+) -> Dict[str, float]:
+    rouge_scores = rouge_metric.compute(
+        predictions=predictions, references=references, use_stemmer=True
+    )
+    bleu_scores = bleu_metric.compute(
+        predictions=predictions, references=[[ref] for ref in references]
+    )
+    return {
+        "rouge1": rouge_scores["rouge1"].mid.fmeasure,
+        "rougeL": rouge_scores["rougeL"].mid.fmeasure,
+        "bleu": bleu_scores.get("score", 0.0),
+    }
 
 
 def evaluate(
@@ -98,9 +118,10 @@ def evaluate(
     accelerator: Accelerator,
     tokenizer,
     cfg: TrainConfig,
+    rouge_metric,
+    bleu_metric,
 ):
     model.eval()
-    rouge = load_metric("rouge")
     generated_texts = []
     reference_texts = []
 
@@ -137,14 +158,14 @@ def evaluate(
         generated_texts.extend(decoded_preds)
         reference_texts.extend(decoded_labels)
 
-    rouge_scores = rouge.compute(
-        predictions=generated_texts, references=reference_texts
+    metrics = compute_metrics(
+        predictions=generated_texts,
+        references=reference_texts,
+        rouge_metric=rouge_metric,
+        bleu_metric=bleu_metric,
     )
     model.train()
-    return {
-        "rouge1": rouge_scores["rouge1"].mid.fmeasure,
-        "rougeL": rouge_scores["rougeL"].mid.fmeasure,
-    }
+    return metrics, generated_texts
 
 
 def train(cfg: TrainConfig) -> Dict[str, float]:
@@ -162,8 +183,16 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
     set_seed(cfg.seed)
 
     tokenizer = AutoTokenizer.from_pretrained(cfg.model_name)
-    train_loader, val_loader = prepare_dataloaders(cfg, tokenizer)
+    (
+        train_loader,
+        val_loader,
+        _train_records,
+        val_records,
+    ) = prepare_dataloaders(cfg, tokenizer)
     model = build_model(cfg, tokenizer)
+
+    rouge_metric = load_metric("rouge")
+    bleu_metric = load_metric("sacrebleu")
 
     optimizer = AdamW(model.parameters(), lr=cfg.lr)
 
@@ -208,7 +237,24 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
                 )
 
             if total_steps % cfg.eval_every_steps == 0:
-                eval_metrics = evaluate(model, val_loader, accelerator, tokenizer, cfg)
+                eval_metrics, generated_questions = evaluate(
+                    model,
+                    val_loader,
+                    accelerator,
+                    tokenizer,
+                    cfg,
+                    rouge_metric,
+                    bleu_metric,
+                )
+                qa_records = [
+                    {
+                        "context": record.context,
+                        "answer": record.answer,
+                        "question": question,
+                    }
+                    for record, question in zip(val_records, generated_questions)
+                ]
+                eval_metrics.update(qg2qa_metrics(qa_records))
                 accelerator.print(f"Step {total_steps}: {eval_metrics}")
                 if eval_metrics["rougeL"] > best_rouge:
                     best_rouge = eval_metrics["rougeL"]
@@ -219,7 +265,18 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
                 break
 
     accelerator.wait_for_everyone()
-    final_metrics = evaluate(model, val_loader, accelerator, tokenizer, cfg)
+    final_metrics, generated_questions = evaluate(
+        model, val_loader, accelerator, tokenizer, cfg, rouge_metric, bleu_metric
+    )
+    qa_records = [
+        {
+            "context": record.context,
+            "answer": record.answer,
+            "question": question,
+        }
+        for record, question in zip(val_records, generated_questions)
+    ]
+    final_metrics.update(qg2qa_metrics(qa_records))
     save_model(accelerator, model, tokenizer, cfg.output_dir, cfg.lora)
     save_metrics(cfg.output_dir, final_metrics)
     return final_metrics
