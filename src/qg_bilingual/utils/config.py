@@ -1,10 +1,21 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict
 
 import yaml
+
+
+@dataclass
+class QG2QAConfig:
+    qa_ckpt_en: str = "distilbert-base-uncased-distilled-squad"
+    qa_ckpt_multi: str = "deepset/xlm-roberta-large-squad2"
+    lang: str = "en"
+    f1_thr: float = 0.8
+    conf_thr: float = 0.35
+    device: str = "auto"
+    batch_size: int = 16
 
 
 @dataclass
@@ -30,12 +41,7 @@ class TrainConfig:
     output_dir: Path
     seed: int = 42
     gradient_accumulation_steps: int = 1
-    qa_checkpoint_en: str = "distilbert-base-uncased-distilled-squad"
-    qa_checkpoint_multilingual: str = "deepset/xlm-roberta-large-squad2"
-    qa_eval_language: str = "en"
-    qa_f1_threshold: float = 0.8
-    qa_conf_threshold: float = 0.35
-    qa_batch_size: int = 16
+    qg2qa: QG2QAConfig = field(default_factory=QG2QAConfig)
 
     @classmethod
     def from_yaml(cls, path: Path) -> "TrainConfig":
@@ -62,19 +68,25 @@ class TrainConfig:
             output_dir=Path(raw.get("output_dir", "outputs/train_run")),
             seed=int(raw.get("seed", 42)),
             gradient_accumulation_steps=int(raw.get("gradient_accumulation_steps", 1)),
-            qa_checkpoint_en=str(
-                raw.get("qa_checkpoint_en", "distilbert-base-uncased-distilled-squad")
-            ),
-            qa_checkpoint_multilingual=str(
-                raw.get("qa_checkpoint_multilingual", "deepset/xlm-roberta-large-squad2")
-            ),
-            qa_eval_language=str(raw.get("qa_eval_language", "en")),
-            qa_f1_threshold=float(raw.get("qa_f1_threshold", 0.8)),
-            qa_conf_threshold=float(raw.get("qa_conf_threshold", 0.35)),
-            qa_batch_size=int(raw.get("qa_batch_size", 16)),
+            qg2qa=_load_qg2qa_config(raw.get("qg2qa", {})),
         )
 
 
 def _load_yaml(path: Path) -> Dict[str, Any]:
     with path.open("r", encoding="utf-8") as f:
         return yaml.safe_load(f)
+
+
+def _load_qg2qa_config(raw: Dict[str, Any]) -> QG2QAConfig:
+    return QG2QAConfig(
+        qa_ckpt_en=str(
+            raw.get("qa_ckpt_en", "distilbert-base-uncased-distilled-squad")
+        ),
+        qa_ckpt_multi=str(raw.get("qa_ckpt_multi", "deepset/xlm-roberta-large-squad2")),
+        lang=str(raw.get("lang", "en")),
+        f1_thr=float(raw.get("f1_thr", 0.8)),
+        conf_thr=float(raw.get("conf_thr", 0.35)),
+        device=str(raw.get("device", "auto")),
+        batch_size=int(raw.get("batch_size", 16)),
+    )
+
