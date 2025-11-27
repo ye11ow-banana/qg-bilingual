@@ -28,7 +28,7 @@ dependencies = [
 ]
 
 [project.scripts]
-qg-bilingual = "qg_bilingual:main"
+qg-bilingual = "qg_bilingual.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.9.12,<0.10.0"]
