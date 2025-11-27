@@ -66,7 +66,7 @@ uploads/
 
 # --- ML / LLM / PyTorch specific ---
 # Local datasets
-data/
+/data/
 datasets/
 
 # Model weights & checkpoints
