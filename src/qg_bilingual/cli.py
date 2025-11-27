@@ -20,6 +20,8 @@ import yaml
 from datasets import Dataset, DatasetDict, load_dataset
 from evaluate import load as load_metric
 from peft import LoraConfig, TaskType, get_peft_model
+
+from qg_bilingual.io.jsonl_dataset import format_answer_aware_prompt
 from transformers import (
     AutoModelForSeq2SeqLM,
     AutoTokenizer,
@@ -133,7 +135,9 @@ class ExperimentLogger:
 
     base_dir: Path
 
-    def log_metadata(self, cfg: TrainingConfig, extras: Optional[Dict[str, Any]] = None) -> None:
+    def log_metadata(
+        self, cfg: TrainingConfig, extras: Optional[Dict[str, Any]] = None
+    ) -> None:
         metadata_path = self.base_dir / "metadata.json"
         payload: Dict[str, Any] = {
             "seed": cfg.seed,
@@ -142,7 +146,9 @@ class ExperimentLogger:
         if extras:
             payload.update(extras)
         metadata_path.parent.mkdir(parents=True, exist_ok=True)
-        metadata_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+        metadata_path.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
         LOGGER.info("Logged metadata to %s", metadata_path)
 
     def scaffold_mos_template(self) -> Path:
@@ -161,7 +167,9 @@ class ExperimentLogger:
             "answerability": "1-5",
             "comments": "",
         }
-        template_path.write_text(json.dumps(template, ensure_ascii=False) + "\n", encoding="utf-8")
+        template_path.write_text(
+            json.dumps(template, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
         LOGGER.info("Scaffolded MOS template at %s", template_path)
         return template_path
 
@@ -169,7 +177,7 @@ class ExperimentLogger:
 def format_input(example: Mapping[str, Any], cfg: TrainingConfig) -> str:
     context = example.get("highlighted_context") or example[cfg.text_field]
     answer = example.get(cfg.answer_field, "")
-    return f"generate question: <context> {context} </context> <answer> {answer} </answer>"
+    return format_answer_aware_prompt(answer, context)
 
 
 def load_and_tokenize(cfg: TrainingConfig, tokenizer) -> DatasetDict:
@@ -194,7 +202,9 @@ def load_and_tokenize(cfg: TrainingConfig, tokenizer) -> DatasetDict:
         model_inputs["labels"] = labels["input_ids"]
         return model_inputs
 
-    tokenized = raw.map(preprocess, batched=True, remove_columns=raw["train"].column_names)
+    tokenized = raw.map(
+        preprocess, batched=True, remove_columns=raw["train"].column_names
+    )
     return tokenized
 
 
@@ -233,15 +243,21 @@ def compute_qg_qa_metrics(
     qa_predict_fn: Optional[Callable[[str, str], str]] = None,
 ) -> Dict[str, float]:
     if qa_predict_fn is None:
-        LOGGER.warning("No QA model provided for QG→QA loop; skipping EM/F1 computation.")
+        LOGGER.warning(
+            "No QA model provided for QG→QA loop; skipping EM/F1 computation."
+        )
         return {}
 
     predictions = []
     references_json = []
-    for idx, (question, context, answer) in enumerate(zip(questions, contexts, references)):
+    for idx, (question, context, answer) in enumerate(
+        zip(questions, contexts, references)
+    ):
         pred = qa_predict_fn(question, context)
         predictions.append({"id": str(idx), "prediction_text": pred})
-        references_json.append({"id": str(idx), "answers": {"text": [answer], "answer_start": [0]}})
+        references_json.append(
+            {"id": str(idx), "answers": {"text": [answer], "answer_start": [0]}}
+        )
 
     metric = load_metric("squad")
     return metric.compute(predictions=predictions, references=references_json)
@@ -275,7 +291,9 @@ def build_compute_metrics(
             }
         )
 
-        bleu = metrics["bleu"].compute(predictions=decoded_preds, references=[[l] for l in decoded_labels])
+        bleu = metrics["bleu"].compute(
+            predictions=decoded_preds, references=[[label] for label in decoded_labels]
+        )
         results["bleu"] = bleu["score"]
 
         bert = metrics["bertscore"].compute(
@@ -283,12 +301,22 @@ def build_compute_metrics(
             references=decoded_labels,
             lang="en",
         )
-        results["bertscore_f1"] = float(sum(bert["f1"]) / len(bert["f1"])) if bert["f1"] else 0.0
+        results["bertscore_f1"] = (
+            float(sum(bert["f1"]) / len(bert["f1"])) if bert["f1"] else 0.0
+        )
 
         qa_metrics = compute_qg_qa_metrics(
             questions=decoded_preds,
-            contexts=raw_eval["context"] if "context" in raw_eval.column_names else [""] * len(decoded_preds),
-            references=raw_eval[cfg.answer_field] if cfg.answer_field in raw_eval.column_names else [""] * len(decoded_preds),
+            contexts=(
+                raw_eval["context"]
+                if "context" in raw_eval.column_names
+                else [""] * len(decoded_preds)
+            ),
+            references=(
+                raw_eval[cfg.answer_field]
+                if cfg.answer_field in raw_eval.column_names
+                else [""] * len(decoded_preds)
+            ),
             qa_predict_fn=qa_predict_fn,
         )
         results.update({f"qa_{k}": v for k, v in qa_metrics.items()})
@@ -298,9 +326,15 @@ def build_compute_metrics(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Train bilingual QG models from YAML configs.")
-    parser.add_argument("--config", type=Path, required=True, help="Path to YAML config file.")
-    parser.add_argument("--output-dir", type=Path, default=None, help="Override output directory.")
+    parser = argparse.ArgumentParser(
+        description="Train bilingual QG models from YAML configs."
+    )
+    parser.add_argument(
+        "--config", type=Path, required=True, help="Path to YAML config file."
+    )
+    parser.add_argument(
+        "--output-dir", type=Path, default=None, help="Override output directory."
+    )
     return parser.parse_args()
 
 
@@ -310,7 +344,9 @@ def main() -> None:
     if args.output_dir is not None:
         cfg.output_dir = args.output_dir
 
-    logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
+    )
     LOGGER.info("Loaded config from %s", args.config)
 
     set_seed(cfg.seed)
@@ -343,7 +379,9 @@ def main() -> None:
         seed=cfg.seed,
     )
 
-    compute_metrics = build_compute_metrics(tokenizer, cfg, raw_eval=tokenized["validation"])
+    compute_metrics = build_compute_metrics(
+        tokenizer, cfg, raw_eval=tokenized["validation"]
+    )
 
     trainer = Seq2SeqTrainer(
         model=model,
@@ -357,7 +395,10 @@ def main() -> None:
 
     LOGGER.info("Starting training...")
     trainer.train()
-    LOGGER.info("Training finished. Running evaluation with decoding settings: %s", decoding_kwargs)
+    LOGGER.info(
+        "Training finished. Running evaluation with decoding settings: %s",
+        decoding_kwargs,
+    )
     metrics = trainer.evaluate(max_length=cfg.max_target_len, **decoding_kwargs)
     LOGGER.info("Evaluation metrics: %s", metrics)
 

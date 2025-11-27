@@ -49,8 +49,8 @@ def normalize_text(text: str) -> str:
 
     replacements = {
         "\u00a0": " ",
-        "\u201c": "\"",
-        "\u201d": "\"",
+        "\u201c": '"',
+        "\u201d": '"',
         "\u2018": "'",
         "\u2019": "'",
     }
@@ -84,7 +84,9 @@ def inject_highlight(
         return f"{context} {start_token}{answer}{end_token}"
 
     end = start + len(answer)
-    return f"{context[:start]}{start_token}{context[start:end]}{end_token}{context[end:]}"
+    return (
+        f"{context[:start]}{start_token}{context[start:end]}{end_token}{context[end:]}"
+    )
 
 
 def load_squad_v2(path: Path, *, language: str = "en") -> List[Example]:
@@ -241,7 +243,9 @@ def stratified_split(
             test_count = 0
         splits["train"].extend(group[:train_count])
         splits["val"].extend(group[train_count : train_count + val_count])
-        splits["test"].extend(group[train_count + val_count : train_count + val_count + test_count])
+        splits["test"].extend(
+            group[train_count + val_count : train_count + val_count + test_count]
+        )
 
     for key in splits:
         rng.shuffle(splits[key])
@@ -313,17 +317,63 @@ def write_data_card(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build bilingual QA datasets.")
-    parser.add_argument("--squad-train", type=Path, required=True, help="Path to SQuAD 2.0 train JSON file.")
-    parser.add_argument("--squad-dev", type=Path, required=True, help="Path to SQuAD 2.0 dev JSON file.")
-    parser.add_argument("--ua-corpus", type=Path, required=True, help="Path to Ukrainian QA JSONL corpus.")
-    parser.add_argument("--output-dir", type=Path, default=Path("data/artifacts"), help="Where to write jsonl artifacts.")
-    parser.add_argument("--seed", type=int, default=7, help="Seed for deterministic shuffling.")
-    parser.add_argument("--train-ratio", type=float, default=0.8, help="Training split ratio.")
-    parser.add_argument("--val-ratio", type=float, default=0.1, help="Validation split ratio; remainder used for test.")
-    parser.add_argument("--min-context-chars", type=int, default=80, help="Minimum context length in characters.")
-    parser.add_argument("--max-context-chars", type=int, default=1200, help="Maximum context length in characters.")
-    parser.add_argument("--min-question-chars", type=int, default=8, help="Minimum question length in characters.")
-    parser.add_argument("--max-question-chars", type=int, default=256, help="Maximum question length in characters.")
+    parser.add_argument(
+        "--squad-train",
+        type=Path,
+        required=True,
+        help="Path to SQuAD 2.0 train JSON file.",
+    )
+    parser.add_argument(
+        "--squad-dev", type=Path, required=True, help="Path to SQuAD 2.0 dev JSON file."
+    )
+    parser.add_argument(
+        "--ua-corpus",
+        type=Path,
+        required=True,
+        help="Path to Ukrainian QA JSONL corpus.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("data/artifacts"),
+        help="Where to write jsonl artifacts.",
+    )
+    parser.add_argument(
+        "--seed", type=int, default=7, help="Seed for deterministic shuffling."
+    )
+    parser.add_argument(
+        "--train-ratio", type=float, default=0.8, help="Training split ratio."
+    )
+    parser.add_argument(
+        "--val-ratio",
+        type=float,
+        default=0.1,
+        help="Validation split ratio; remainder used for test.",
+    )
+    parser.add_argument(
+        "--min-context-chars",
+        type=int,
+        default=80,
+        help="Minimum context length in characters.",
+    )
+    parser.add_argument(
+        "--max-context-chars",
+        type=int,
+        default=1200,
+        help="Maximum context length in characters.",
+    )
+    parser.add_argument(
+        "--min-question-chars",
+        type=int,
+        default=8,
+        help="Minimum question length in characters.",
+    )
+    parser.add_argument(
+        "--max-question-chars",
+        type=int,
+        default=256,
+        help="Maximum question length in characters.",
+    )
     return parser.parse_args()
 
 
@@ -354,7 +404,9 @@ def main() -> None:
         write_jsonl(records, args.output_dir / f"{split_name}.jsonl")
 
     total_counts = summarise_counts(filtered)
-    split_counts: Dict[str, Counter] = {name: summarise_counts(records) for name, records in splits.items()}
+    split_counts: Dict[str, Counter] = {
+        name: summarise_counts(records) for name, records in splits.items()
+    }
 
     write_data_card(
         args.output_dir,
