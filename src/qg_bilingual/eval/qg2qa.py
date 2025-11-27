@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from collections import Counter
 from string import punctuation
 from typing import Mapping, MutableSequence, Optional, Sequence, Tuple
 
+import torch
 from evaluate import load as load_metric
 from transformers import pipeline
+
+LOGGER = logging.getLogger(__name__)
 
 
 def _get_value(record: object, key: str) -> str:
@@ -62,17 +66,28 @@ def _find_answer_start(context: str, answer: str) -> Optional[int]:
 
 def qg2qa_metrics(
     val_records: Sequence[object],
-    qa_ckpt: str = "distilbert-base-uncased-distilled-squad",
+    qa_ckpt_en: str = "distilbert-base-uncased-distilled-squad",
+    qa_ckpt_multi: str = "deepset/xlm-roberta-large-squad2",
+    lang: str = "en",
     f1_thr: float = 0.8,
     conf_thr: float = 0.35,
     *,
     batch_size: int = 16,
-    device: Optional[int] = None,
+    device: Optional[object] = None,
 ) -> dict:
     """Compute EM/F1 by answering generated questions with a QA model."""
 
+    qa_ckpt = _select_qa_checkpoint(lang, qa_ckpt_en, qa_ckpt_multi)
+    resolved_device, device_label = _resolve_device(device)
+
+    LOGGER.info("QA checkpoint: %s (lang=%s)", qa_ckpt, lang)
+    LOGGER.info("QA device resolved to %s", device_label)
+
     qa_model = pipeline(
-        "question-answering", model=qa_ckpt, tokenizer=qa_ckpt, device=device
+        "question-answering",
+        model=qa_ckpt,
+        tokenizer=qa_ckpt,
+        device=resolved_device,
     )
     qa_metric = load_metric("squad")
 
@@ -130,6 +145,9 @@ def qg2qa_metrics(
 
     aggregated = qa_metric.compute(predictions=predictions, references=references)
 
+    roc_points = list(zip(f1_scores, confidences))
+    LOGGER.info("QA ROC points (f1, conf): %s", roc_points)
+
     pass_count = sum(
         1 for f1, conf in zip(f1_scores, confidences) if f1 >= f1_thr and conf >= conf_thr
     )
@@ -141,4 +159,46 @@ def qg2qa_metrics(
         "qa_pass_rate": pass_rate,
         "qa_f1_distribution": list(f1_scores),
         "qa_confidence_distribution": list(confidences),
+        "qa_model": qa_ckpt,
+        "lang": lang,
+        "qa_device": device_label,
+        "f1_thr": f1_thr,
+        "conf_thr": conf_thr,
     }
+
+
+def _select_qa_checkpoint(lang: str, qa_ckpt_en: str, qa_ckpt_multi: str) -> str:
+    normalized = lang.lower()
+    if normalized in {"en", "eng", "english"}:
+        return qa_ckpt_en
+    if normalized in {"ua", "uk", "ukr", "ukrainian"}:
+        return qa_ckpt_multi
+    if normalized == "auto":
+        return qa_ckpt_multi
+    return qa_ckpt_multi
+
+
+def _resolve_device(device: Optional[object]) -> Tuple[Optional[object], str]:
+    if device is None:
+        selected = 0 if torch.cuda.is_available() else -1
+        return selected, "cuda" if selected == 0 else "cpu"
+
+    if isinstance(device, str):
+        normalized = device.lower()
+        if normalized == "auto":
+            selected = 0 if torch.cuda.is_available() else -1
+            return selected, "cuda" if selected == 0 else "cpu"
+        if normalized == "cuda":
+            return 0, "cuda"
+        if normalized == "cpu":
+            return -1, "cpu"
+        return device, device
+
+    if isinstance(device, torch.device):
+        label = device.type
+        if device.index is not None:
+            label = f"{label}:{device.index}"
+        return device, label
+
+    return device, str(device)
+

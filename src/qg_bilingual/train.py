@@ -168,13 +168,6 @@ def evaluate(
     return metrics, generated_texts
 
 
-def _select_qa_checkpoint(cfg: TrainConfig) -> str:
-    lang = cfg.qa_eval_language.lower()
-    if lang in {"en", "eng", "english"}:
-        return cfg.qa_checkpoint_en
-    return cfg.qa_checkpoint_multilingual
-
-
 def train(cfg: TrainConfig) -> Dict[str, float]:
     accelerator = Accelerator(
         gradient_accumulation_steps=cfg.gradient_accumulation_steps,
@@ -200,8 +193,6 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
 
     rouge_metric = load_metric("rouge")
     bleu_metric = load_metric("sacrebleu")
-    qa_ckpt = _select_qa_checkpoint(cfg)
-    qa_device = accelerator.device.index if accelerator.device.type == "cuda" else None
 
     optimizer = AdamW(model.parameters(), lr=cfg.lr)
 
@@ -266,11 +257,13 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
                 eval_metrics.update(
                     qg2qa_metrics(
                         qa_records,
-                        qa_ckpt=qa_ckpt,
-                        f1_thr=cfg.qa_f1_threshold,
-                        conf_thr=cfg.qa_conf_threshold,
-                        batch_size=cfg.qa_batch_size,
-                        device=qa_device,
+                        qa_ckpt_en=cfg.qg2qa.qa_ckpt_en,
+                        qa_ckpt_multi=cfg.qg2qa.qa_ckpt_multi,
+                        lang=cfg.qg2qa.lang,
+                        f1_thr=cfg.qg2qa.f1_thr,
+                        conf_thr=cfg.qg2qa.conf_thr,
+                        batch_size=cfg.qg2qa.batch_size,
+                        device=cfg.qg2qa.device,
                     )
                 )
                 accelerator.print(f"Step {total_steps}: {eval_metrics}")
@@ -297,11 +290,13 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
     final_metrics.update(
         qg2qa_metrics(
             qa_records,
-            qa_ckpt=qa_ckpt,
-            f1_thr=cfg.qa_f1_threshold,
-            conf_thr=cfg.qa_conf_threshold,
-            batch_size=cfg.qa_batch_size,
-            device=qa_device,
+            qa_ckpt_en=cfg.qg2qa.qa_ckpt_en,
+            qa_ckpt_multi=cfg.qg2qa.qa_ckpt_multi,
+            lang=cfg.qg2qa.lang,
+            f1_thr=cfg.qg2qa.f1_thr,
+            conf_thr=cfg.qg2qa.conf_thr,
+            batch_size=cfg.qg2qa.batch_size,
+            device=cfg.qg2qa.device,
         )
     )
     save_model(accelerator, model, tokenizer, cfg.output_dir, cfg.lora)

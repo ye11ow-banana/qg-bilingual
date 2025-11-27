@@ -16,10 +16,21 @@ Run the answer-aware question generation training loop with the provided YAML co
 uv run python -m qg_bilingual.train --config configs/train_t5_base.yaml
 ```
 
-Evaluation uses a QA model for EM/F1/pass-rate; switch to the multilingual
-checkpoint for UA validation by setting `qa_eval_language: "uk"` (the default EN
-checkpoint is `distilbert-base-uncased-distilled-squad`, the multilingual one is
-`deepset/xlm-roberta-large-squad2`).
+Evaluation uses a QA model for EM/F1/pass-rate. Configure language-aware QA in
+the `qg2qa` block:
+
+```yaml
+qg2qa:
+  qa_ckpt_en: "distilbert-base-uncased-distilled-squad"
+  qa_ckpt_multi: "deepset/xlm-roberta-large-squad2"
+  lang: "en"   # en|ua|auto
+  f1_thr: 0.8
+  conf_thr: 0.35
+  device: "auto"  # cuda|cpu|auto
+```
+
+For Ukrainian validation, set `lang: "ua"` to pick the multilingual QA model;
+using the EN checkpoint for UA will under-report EM/F1.
 
 Each JSONL row should look like:
 
@@ -53,6 +64,11 @@ After validation, `models/.../metrics_val.json` contains combined text and QG→
   "bleu": 24.3,
   "em": 32.1,
   "f1": 48.7,
-  "qa_pass_rate": 0.44
+  "qa_pass_rate": 0.44,
+  "qa_model": "distilbert-base-uncased-distilled-squad",
+  "lang": "en",
+  "qa_device": "cuda",
+  "f1_thr": 0.8,
+  "conf_thr": 0.35
 }
 ```
