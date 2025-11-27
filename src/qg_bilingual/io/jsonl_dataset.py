@@ -1,10 +1,9 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Sequence
-
-import json
 
 import torch
 from torch.utils.data import Dataset
@@ -35,6 +34,10 @@ def load_jsonl(path: Path) -> List[JsonlRecord]:
     return records
 
 
+def format_answer_aware_prompt(answer: str, context: str) -> str:
+    return f"generate question: answer: {answer} context: {context}"
+
+
 class QGJsonlDataset(Dataset):
     def __init__(
         self,
@@ -54,7 +57,7 @@ class QGJsonlDataset(Dataset):
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
         item = self.records[idx]
-        source = f"generate question: answer: {item.answer} context: {item.context}"
+        source = format_answer_aware_prompt(item.answer, item.context)
         model_inputs = self.tokenizer(
             source,
             max_length=self.max_input_len,

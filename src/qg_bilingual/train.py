@@ -58,6 +58,9 @@ def prepare_dataloaders(
     train_records = load_jsonl(cfg.train_file)
     val_records = load_jsonl(cfg.val_file)
 
+    generator = torch.Generator()
+    generator.manual_seed(cfg.seed)
+
     train_dataset = QGJsonlDataset(
         train_records,
         tokenizer,
@@ -77,12 +80,14 @@ def prepare_dataloaders(
         batch_size=cfg.per_device_train_batch_size,
         shuffle=True,
         collate_fn=collator,
+        generator=generator,
     )
     val_loader = DataLoader(
         val_dataset,
         batch_size=cfg.per_device_eval_batch_size,
         shuffle=False,
         collate_fn=collator,
+        generator=generator,
     )
     return train_loader, val_loader
 
@@ -120,13 +125,12 @@ def evaluate(
             (generated_tokens, labels)
         )
 
-        labels = labels.cpu().numpy()
-        labels = [
-            [token if token != -100 else tokenizer.pad_token_id for token in label]
-            for label in labels
-        ]
+        generated_tokens = generated_tokens.cpu()
+        labels = labels.cpu()
+        labels = torch.where(labels == -100, tokenizer.pad_token_id, labels)
+
         decoded_preds = tokenizer.batch_decode(
-            generated_tokens.cpu(), skip_special_tokens=True
+            generated_tokens, skip_special_tokens=True
         )
         decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
 
@@ -208,7 +212,7 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
                 accelerator.print(f"Step {total_steps}: {eval_metrics}")
                 if eval_metrics["rougeL"] > best_rouge:
                     best_rouge = eval_metrics["rougeL"]
-                    save_model(accelerator, model, tokenizer, cfg.output_dir)
+                    save_model(accelerator, model, tokenizer, cfg.output_dir, cfg.lora)
                     save_metrics(cfg.output_dir, eval_metrics)
 
             if total_steps >= max_train_steps:
@@ -216,18 +220,34 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
 
     accelerator.wait_for_everyone()
     final_metrics = evaluate(model, val_loader, accelerator, tokenizer, cfg)
-    save_model(accelerator, model, tokenizer, cfg.output_dir)
+    save_model(accelerator, model, tokenizer, cfg.output_dir, cfg.lora)
     save_metrics(cfg.output_dir, final_metrics)
     return final_metrics
 
 
 def save_model(
-    accelerator: Accelerator, model: AutoModelForSeq2SeqLM, tokenizer, output_dir: Path
+    accelerator: Accelerator,
+    model: AutoModelForSeq2SeqLM,
+    tokenizer,
+    output_dir: Path,
+    lora_enabled: bool,
 ) -> None:
     if accelerator.is_main_process:
         output_dir.mkdir(parents=True, exist_ok=True)
         unwrapped = accelerator.unwrap_model(model)
-        unwrapped.save_pretrained(output_dir)
+        if lora_enabled:
+            adapter_dir = output_dir / "adapter"
+            adapter_dir.mkdir(parents=True, exist_ok=True)
+            unwrapped.save_pretrained(adapter_dir)
+            LOGGER.info("Saved LoRA adapters to %s", adapter_dir)
+
+            base_dir = output_dir / "base_model"
+            base_dir.mkdir(parents=True, exist_ok=True)
+            # type: ignore[attr-defined]
+            unwrapped.base_model.model.save_pretrained(base_dir)
+            LOGGER.info("Saved base model weights to %s", base_dir)
+        else:
+            unwrapped.save_pretrained(output_dir)
         tokenizer.save_pretrained(output_dir)
         LOGGER.info("Saved model and tokenizer to %s", output_dir)
     accelerator.wait_for_everyone()

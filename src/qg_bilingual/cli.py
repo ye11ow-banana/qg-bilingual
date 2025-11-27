@@ -20,6 +20,8 @@ import yaml
 from datasets import Dataset, DatasetDict, load_dataset
 from evaluate import load as load_metric
 from peft import LoraConfig, TaskType, get_peft_model
+
+from qg_bilingual.io.jsonl_dataset import format_answer_aware_prompt
 from transformers import (
     AutoModelForSeq2SeqLM,
     AutoTokenizer,
@@ -175,9 +177,7 @@ class ExperimentLogger:
 def format_input(example: Mapping[str, Any], cfg: TrainingConfig) -> str:
     context = example.get("highlighted_context") or example[cfg.text_field]
     answer = example.get(cfg.answer_field, "")
-    return (
-        f"generate question: <context> {context} </context> <answer> {answer} </answer>"
-    )
+    return format_answer_aware_prompt(answer, context)
 
 
 def load_and_tokenize(cfg: TrainingConfig, tokenizer) -> DatasetDict:
