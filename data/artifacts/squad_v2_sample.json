@@ -1,0 +1,86 @@
+[
+  {
+    "context": "The Apollo program was the third United States human spaceflight program carried out by NASA, which accomplished landing the first humans on the Moon.",
+    "question": "Which NASA program landed the first humans on the Moon?",
+    "answers": {"text": ["The Apollo program"]},
+    "is_impossible": false,
+    "title": "Apollo"
+  },
+  {
+    "context": "The Apollo program was the third United States human spaceflight program carried out by NASA, which accomplished landing the first humans on the Moon.",
+    "question": "Who ran the Apollo program?",
+    "answers": {"text": ["NASA"]},
+    "is_impossible": false,
+    "title": "Apollo"
+  },
+  {
+    "context": "The Apollo program was the third United States human spaceflight program carried out by NASA, which accomplished landing the first humans on the Moon.",
+    "question": "What did the Apollo program accomplish?",
+    "answers": {"text": ["landing the first humans on the Moon"]},
+    "is_impossible": false,
+    "title": "Apollo"
+  },
+  {
+    "context": "Python is a high-level, interpreted programming language known for its readability and wide range of applications from web development to data science and automation.",
+    "question": "What type of language is Python?",
+    "answers": {"text": ["a high-level, interpreted programming language"]},
+    "is_impossible": false,
+    "title": "Python"
+  },
+  {
+    "context": "Python is a high-level, interpreted programming language known for its readability and wide range of applications from web development to data science and automation.",
+    "question": "Name one domain where Python is used.",
+    "answers": {"text": ["web development"]},
+    "is_impossible": false,
+    "title": "Python"
+  },
+  {
+    "context": "Python is a high-level, interpreted programming language known for its readability and wide range of applications from web development to data science and automation.",
+    "question": "What quality is Python known for?",
+    "answers": {"text": ["readability"]},
+    "is_impossible": false,
+    "title": "Python"
+  },
+  {
+    "context": "Kyiv is the capital and most populous city of Ukraine, situated on the Dnipro River and known for its historical architecture and modern tech industry.",
+    "question": "Which river is Kyiv situated on?",
+    "answers": {"text": ["the Dnipro River"]},
+    "is_impossible": false,
+    "title": "Kyiv"
+  },
+  {
+    "context": "Kyiv is the capital and most populous city of Ukraine, situated on the Dnipro River and known for its historical architecture and modern tech industry.",
+    "question": "What is Kyiv known for besides history?",
+    "answers": {"text": ["modern tech industry"]},
+    "is_impossible": false,
+    "title": "Kyiv"
+  },
+  {
+    "context": "Kyiv is the capital and most populous city of Ukraine, situated on the Dnipro River and known for its historical architecture and modern tech industry.",
+    "question": "What country is Kyiv the capital of?",
+    "answers": {"text": ["Ukraine"]},
+    "is_impossible": false,
+    "title": "Kyiv"
+  },
+  {
+    "context": "During the Renaissance, artists like Leonardo da Vinci and Michelangelo advanced techniques in perspective and anatomy, influencing art for centuries.",
+    "question": "Name one artist from the Renaissance mentioned.",
+    "answers": {"text": ["Leonardo da Vinci"]},
+    "is_impossible": false,
+    "title": "Renaissance"
+  },
+  {
+    "context": "During the Renaissance, artists like Leonardo da Vinci and Michelangelo advanced techniques in perspective and anatomy, influencing art for centuries.",
+    "question": "What techniques were advanced during the Renaissance?",
+    "answers": {"text": ["perspective and anatomy"]},
+    "is_impossible": false,
+    "title": "Renaissance"
+  },
+  {
+    "context": "During the Renaissance, artists like Leonardo da Vinci and Michelangelo advanced techniques in perspective and anatomy, influencing art for centuries.",
+    "question": "Was perspective influenced during the Renaissance?",
+    "answers": {"text": ["Yes"]},
+    "is_impossible": true,
+    "title": "Renaissance"
+  }
+]
