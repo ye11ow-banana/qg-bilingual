@@ -1,6 +1,7 @@
 import argparse
 import hashlib
 import json
+import math
 import random
 import re
 import sys
@@ -118,6 +119,14 @@ def save_jsonl(path: Path, rows: Iterable[Dict]):
 def stratified_group_split(
     groups: Dict[str, List[Dict]], seed: int, train_frac: float, val_frac: float, test_frac: float
 ) -> Dict[str, List[Dict]]:
+    fracs = [train_frac, val_frac, test_frac]
+    total = sum(fracs)
+    if total <= 0:
+        fracs = [0.8, 0.1, 0.1]
+        total = 1.0
+    if not math.isclose(total, 1.0, rel_tol=1e-6, abs_tol=1e-3):
+        raise ValueError("train/val/test fractions must sum to 1.0 (within 1e-3 tolerance)")
+
     group_keys = list(groups.keys())
     rnd = random.Random(seed)
     rnd.shuffle(group_keys)
@@ -126,26 +135,35 @@ def stratified_group_split(
     if total_groups == 0:
         return {"train": [], "val": [], "test": []}
 
-    # Allocate per-group to preserve paragraph integrity and avoid empty splits
-    if train_frac + val_frac + test_frac <= 0:
-        train_frac, val_frac, test_frac = 0.8, 0.1, 0.1
+    positive_splits = [idx for idx, frac in enumerate(fracs) if frac > 0]
+    if total_groups < len(positive_splits):
+        raise ValueError("Not enough groups to allocate at least one per requested split")
 
-    total = train_frac + val_frac + test_frac
-    train_frac, val_frac, test_frac = (train_frac / total, val_frac / total, test_frac / total)
+    raw_counts = [frac * total_groups for frac in fracs]
+    counts = [int(x) for x in raw_counts]
+    remainders = [x - int(x) for x in raw_counts]
+    leftover = total_groups - sum(counts)
 
-    train_groups = max(1, int(round(total_groups * train_frac))) if total_groups >= 2 else total_groups
-    val_groups = max(1, int(round(total_groups * val_frac))) if total_groups >= 3 else (1 if total_groups == 2 and val_frac > 0 else 0)
-    if train_groups + val_groups > total_groups:
-        val_groups = max(0, total_groups - train_groups)
-    test_groups = max(0, total_groups - train_groups - val_groups)
-    if test_groups == 0 and total_groups > train_groups + val_groups:
-        test_groups = total_groups - train_groups - val_groups
+    while leftover > 0:
+        idx = max(range(3), key=lambda i: remainders[i])
+        counts[idx] += 1
+        remainders[idx] = 0.0
+        leftover -= 1
+
+    for idx in positive_splits:
+        if counts[idx] == 0:
+            donor = max((j for j in range(3) if counts[j] > 1), key=lambda j: counts[j], default=None)
+            if donor is None:
+                raise ValueError("Unable to ensure non-empty split for requested fractions")
+            counts[donor] -= 1
+            counts[idx] += 1
 
     splits = {"train": [], "val": [], "test": []}
+    boundaries = [counts[0], counts[0] + counts[1]]
     for idx, key in enumerate(group_keys):
-        if idx < train_groups:
+        if idx < boundaries[0]:
             split = "train"
-        elif idx < train_groups + val_groups:
+        elif idx < boundaries[1]:
             split = "val"
         else:
             split = "test"
@@ -170,6 +188,9 @@ def load_squad_rows(args) -> List[Dict]:
 
 
 def process_dataset(args) -> Tuple[Dict[str, List[Dict]], Counter, List[Dict]]:
+    if any(frac < 0 for frac in (args.train_frac, args.val_frac, args.test_frac)):
+        raise ValueError("train/val/test fractions must be non-negative")
+
     all_rows = load_squad_rows(args)
 
     dedup = set()
