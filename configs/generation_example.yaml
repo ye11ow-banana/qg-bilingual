@@ -1,0 +1,29 @@
+model:
+  name: "t5-base"
+  tokenizer: "t5-base"
+  max_input_len: 512
+  batch_size: 8
+  seed: 42
+
+task:
+  mode: "aware"        # aware|agnostic
+  wh_type: null         # null|who|when|where|what|why|how
+  lang: "en"            # en|ua
+
+decoding:
+  strategy: "beam"     # beam|topp
+  num_beams: 6
+  length_penalty: 1.1
+  max_new_tokens: 32
+  min_new_tokens: 4
+  no_repeat_ngram_size: 3
+  repetition_penalty: 1.1
+  top_p: 0.9
+  temperature: 0.8
+
+qg2qa:
+  qa_ckpt_en: "distilbert-base-uncased-distilled-squad"
+  qa_ckpt_multi: "deepset/xlm-roberta-large-squad2"
+  f1_thr: 0.8
+  conf_thr: 0.35
+  device: "auto"
