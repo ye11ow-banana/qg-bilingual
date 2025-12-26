@@ -38,8 +38,7 @@ def normalize_text(text: str) -> str:
 
     # tighten spaces around punctuation and slashes
     text = re.sub(r"\s+", " ", text)
-    text = re.sub(r"\s+([,.;:!?])", r"\1", text)
-    text = re.sub(r"([,.;:!?])(?!\s|$)", r"\1 ", text)
+    text = re.sub(r"\s*([,.;:!?])\s*", r"\1 ", text)
     text = re.sub(r"\s*/\s*", "/", text)
     text = re.sub(r"\s*-\s*", "-", text)
     text = re.sub(r"\s+", " ", text)
@@ -116,7 +115,9 @@ def save_jsonl(path: Path, rows: Iterable[Dict]):
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
-def stratified_group_split(groups: Dict[str, List[Dict]], seed: int) -> Dict[str, List[Dict]]:
+def stratified_group_split(
+    groups: Dict[str, List[Dict]], seed: int, train_frac: float, val_frac: float, test_frac: float
+) -> Dict[str, List[Dict]]:
     group_keys = list(groups.keys())
     rnd = random.Random(seed)
     rnd.shuffle(group_keys)
@@ -126,11 +127,19 @@ def stratified_group_split(groups: Dict[str, List[Dict]], seed: int) -> Dict[str
         return {"train": [], "val": [], "test": []}
 
     # Allocate per-group to preserve paragraph integrity and avoid empty splits
-    train_groups = max(1, int(round(total_groups * 0.8))) if total_groups >= 2 else total_groups
-    val_groups = max(1, int(round(total_groups * 0.1))) if total_groups >= 3 else (1 if total_groups == 2 else 0)
+    if train_frac + val_frac + test_frac <= 0:
+        train_frac, val_frac, test_frac = 0.8, 0.1, 0.1
+
+    total = train_frac + val_frac + test_frac
+    train_frac, val_frac, test_frac = (train_frac / total, val_frac / total, test_frac / total)
+
+    train_groups = max(1, int(round(total_groups * train_frac))) if total_groups >= 2 else total_groups
+    val_groups = max(1, int(round(total_groups * val_frac))) if total_groups >= 3 else (1 if total_groups == 2 and val_frac > 0 else 0)
     if train_groups + val_groups > total_groups:
         val_groups = max(0, total_groups - train_groups)
     test_groups = max(0, total_groups - train_groups - val_groups)
+    if test_groups == 0 and total_groups > train_groups + val_groups:
+        test_groups = total_groups - train_groups - val_groups
 
     splits = {"train": [], "val": [], "test": []}
     for idx, key in enumerate(group_keys):
@@ -213,7 +222,10 @@ def process_dataset(args) -> Tuple[Dict[str, List[Dict]], Counter, List[Dict]]:
         dedup.add(key)
 
         group_hash = hashlib.md5(context.encode("utf-8")).hexdigest()
-        group_id = f"{title}::{group_hash}"
+        if args.stratify_by == "title":
+            group_id = title or "<unknown-title>"
+        else:
+            group_id = f"{title}::{group_hash}"
         grouped[group_id].append(
             {
                 "context": context,
@@ -224,7 +236,9 @@ def process_dataset(args) -> Tuple[Dict[str, List[Dict]], Counter, List[Dict]]:
             }
         )
 
-    splits = stratified_group_split(grouped, args.seed)
+    splits = stratified_group_split(
+        grouped, args.seed, args.train_frac, args.val_frac, args.test_frac
+    )
     return splits, dropped, drop_records
 
 
@@ -245,10 +259,19 @@ def parse_args():
     parser.add_argument("--max-question", type=int, default=40)
     parser.add_argument("--min-answer", type=int, default=1)
     parser.add_argument("--max-answer", type=int, default=15)
+    parser.add_argument(
+        "--stratify-by",
+        choices=["paragraph", "title"],
+        default="paragraph",
+        help="Stratify splits by paragraph (context hash) or by article title.",
+    )
     unans_group = parser.add_mutually_exclusive_group()
     unans_group.add_argument("--keep-unanswerable", dest="drop_unanswerable", action="store_false")
     unans_group.add_argument("--drop-unanswerable", dest="drop_unanswerable", action="store_true")
     parser.set_defaults(drop_unanswerable=False)
+    parser.add_argument("--train-frac", type=float, default=0.8)
+    parser.add_argument("--val-frac", type=float, default=0.1)
+    parser.add_argument("--test-frac", type=float, default=0.1)
     return parser.parse_args()
 
 
