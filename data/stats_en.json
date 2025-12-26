@@ -1,0 +1,46 @@
+{
+  "counts": {
+    "train": 175,
+    "val": 21,
+    "test": 21
+  },
+  "avg_len": {
+    "context": {
+      "train": 28.0,
+      "val": 28.0,
+      "test": 28.0
+    },
+    "question": {
+      "train": 8.04,
+      "val": 8.0,
+      "test": 8.0
+    },
+    "answer": {
+      "train": 1.6,
+      "val": 1.6666666666666667,
+      "test": 1.6666666666666667
+    }
+  },
+  "median_len": {
+    "context": {
+      "train": 28,
+      "val": 28,
+      "test": 28
+    },
+    "question": {
+      "train": 9,
+      "val": 9,
+      "test": 9
+    },
+    "answer": {
+      "train": 2,
+      "val": 2,
+      "test": 2
+    }
+  },
+  "unanswerable_share": {
+    "train": 0.04,
+    "val": 0.0,
+    "test": 0.0
+  }
+}
