@@ -1,0 +1,41 @@
+model: google/t5-efficient-tiny
+output_dir: runs/t5_smoke_en/
+task:
+  mode: aware
+  lang: en
+data:
+  train_path: data/artifacts/en/train.jsonl
+  val_path: data/artifacts/en/val.jsonl
+train:
+  epochs: 1
+  lr: 3e-4
+  batch_per_device: 4
+  grad_accum: 1
+  max_input_len: 256
+  max_target_len: 32
+  seed: 42
+  dropout: 0.1
+peft:
+  lora: true
+  r: 4
+  alpha: 8
+  dropout: 0.05
+amp:
+  precision: fp16
+decoding:
+  strategy: beam
+  num_beams: 4
+  length_penalty: 1.0
+  no_repeat_ngram_size: 3
+eval:
+  compute: [rouge]
+  save_metrics_to: runs/t5_smoke_en/metrics_val.json
+  samples_path: runs/t5_smoke_en/samples_val.jsonl
+qg2qa:
+  qa_ckpt_en: distilbert-base-uncased-distilled-squad
+  qa_ckpt_multi: deepset/xlm-roberta-large-squad2
+  lang: en
+  f1_thr: 0.8
+  conf_thr: 0.35
+  device: auto
+  batch_size: 8

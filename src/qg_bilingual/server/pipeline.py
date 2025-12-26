@@ -230,7 +230,15 @@ class SafeGenerationPipeline:
     def _toxicity_check(self, request: GenerateRequest, question: str) -> tuple[list[str], float, list[str]]:
         if self.toxicity_service:
             tox_res = self.toxicity_service.score([question], request.lang, context=request.context)[0]
-            return tox_res.get("lexicon_hits", []), tox_res.get("prob"), tox_res.get("flags", [])
+            lexicon_hits = tox_res.get("lexicon_hits", [])
+            tox_prob = tox_res.get("prob")
+            flags = tox_res.get("flags", [])
+            if not lexicon_hits:
+                lexicon_hits = self.config.lexicons.find_matches(question, request.lang)
+            if tox_prob is None:
+                tox_prob = self.config.toxicity_classifier.score(question, request.lang, lexicon_hits)
+            return lexicon_hits, tox_prob, flags
+
         lexicon_hits = self.config.lexicons.find_matches(question, request.lang)
         tox_prob = self.config.toxicity_classifier.score(question, request.lang, lexicon_hits)
         return lexicon_hits, tox_prob, []
