@@ -7,6 +7,7 @@ import unicodedata
 from dataclasses import dataclass
 from string import punctuation
 from typing import Iterable
+from collections import Counter
 
 
 @dataclass
@@ -125,7 +126,4 @@ def _tokens(text: str) -> Iterable[str]:
 
 
 def _count_tokens(tokens: Iterable[str]):
-    counts = {}
-    for tok in tokens:
-        counts[tok] = counts.get(tok, 0) + 1
-    return counts
+    return Counter(tokens)

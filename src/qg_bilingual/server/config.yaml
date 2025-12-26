@@ -1,0 +1,40 @@
+server:
+  host: 0.0.0.0
+  port: 8000
+
+models:
+  qg: google/mt5-base
+  qg_lora: runs/t5_lora_adapter
+  qa_en: deepset/roberta-base-squad2
+  qa_multi: deepset/xlm-roberta-base-squad2
+  nli: facebook/bart-large-mnli
+  tox_en: unitary/toxic-bert
+  tox_ua: cointegrated/rubert-tiny-toxicity
+
+thresholds:
+  qg:
+    max_new_tokens: 32
+    min_new_tokens: 4
+    no_repeat_ngram_size: 3
+    strategy: beam
+    num_beams: 6
+    length_penalty: 1.1
+    top_p: 0.9
+    temperature: 0.8
+  qg2qa:
+    f1_pass: 0.80
+    conf_pass: 0.35
+  nli:
+    require_entailment: true
+    neutral_ok: false
+  toxicity:
+    prob_max: 0.40
+    lexicon_block: true
+
+policy:
+  context_only: true
+  allowed_wh: [who, when, where, what, why, how]
+
+runtime:
+  device: auto
+  batch_size: 8

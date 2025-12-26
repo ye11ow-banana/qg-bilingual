@@ -1,5 +1,7 @@
-"""Evaluation helpers for bilingual QG."""
+"""Evaluation helpers for bilingual QG.
 
-from .qg2qa import qg2qa_metrics
+Heavy imports are avoided at the package level to keep lightweight runtime
+dependences for the server API layer.
+"""
 
-__all__ = ["qg2qa_metrics"]
+__all__ = []

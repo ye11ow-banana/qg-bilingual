@@ -9,6 +9,35 @@ See [docs/project_plan.md](docs/project_plan.md) for the current analytical over
 - Training CLI for answer-aware T5 models is available with optional LoRA and ROUGE-L validation.
 - Data artifacts are expected as JSONL with `context`, `answer`, and `question` fields (see example below).
 
+## HTTP API
+An experimental FastAPI server exposes a toxicity- and NLI-checked generation endpoint. Run it with the bundled configuration:
+
+```bash
+uv run uvicorn qg_bilingual.server.app:app --host 0.0.0.0 --port 8000
+```
+
+- Configuration lives in `src/qg_bilingual/server/config.yaml` and controls model names, decoding parameters, and thresholds for QA/NLI/toxicity checks.
+- `/healthz` returns `{"status": "ok"}`.
+- `/generate_safe` accepts a JSON body described by `GenerateRequest` and returns `GenerateResponse` with metrics, reasons for filtering, and debug fields.
+
+Example requests:
+
+```bash
+# aware EN
+curl -X POST :8000/generate_safe -H 'Content-Type: application/json' -d '{
+  "context":"Taras Shevchenko was born on March 9, 1814 in Moryntsi.",
+  "answer":"March 9, 1814", "lang":"en", "mode":"aware"
+}'
+
+# agnostic UA with WHEN constraint
+curl -X POST :8000/generate_safe -H 'Content-Type: application/json' -d '{
+  "context":"Тарас Шевченко народився 9 березня 1814 року в Моринцях.",
+  "lang":"ua", "mode":"agnostic", "wh_type":"when"
+}'
+```
+
+Responses include `question` (or `null` if filtered out), `passed`, `reasons` (e.g. `qg2qa_f1_low`, `nli_neutral`, `lexicon_block`), a `metrics` map (`qa_em`, `qa_f1`, `qa_conf`, `tox_prob`, `nli`), and `debug` fields with decoding options and detected WH tokens.
+
 ## Train (T5-base aware)
 Run the answer-aware question generation training loop with the provided YAML config:
 
