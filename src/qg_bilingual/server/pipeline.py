@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from typing import Dict, Optional
 
 from qg_bilingual.eval.normalize import NormalizationConfig, Normalizer, exact_match, f1_score
-
+from qg_bilingual.safety import NLIService, ToxicityService
 from .safety import DEFAULT_LEXICONS, Lexicons, Policy, ToxicityClassifier
 from .schemas import GenerateRequest, GenerateResponse
 
@@ -100,9 +100,11 @@ class PipelineConfig:
     decoding: QGDecodingConfig
     thresholds: Thresholds
     policy: Policy
+    runtime: RuntimeConfig = field(default_factory=RuntimeConfig)
     lexicons: Lexicons = field(default_factory=lambda: DEFAULT_LEXICONS)
     toxicity_classifier: ToxicityClassifier = field(default_factory=ToxicityClassifier)
     normalizer: Normalizer = field(default_factory=lambda: Normalizer(NormalizationConfig(), lang="en"))
+    safety_config: Dict[str, object] = field(default_factory=dict)
 
 
 class SafeGenerationPipeline:
@@ -113,19 +115,23 @@ class SafeGenerationPipeline:
         qa_model_multi: StubQAModel,
         nli_model: StubNLIModel,
         config: PipelineConfig,
+        nli_service: NLIService | None = None,
+        toxicity_service: ToxicityService | None = None,
     ) -> None:
         self.qg_model = qg_model
         self.qa_model_en = qa_model_en
         self.qa_model_multi = qa_model_multi
         self.nli_model = nli_model
         self.config = config
+        self.nli_service = nli_service
+        self.toxicity_service = toxicity_service
 
     def run(self, request: GenerateRequest) -> GenerateResponse:
         self._validate_request(request)
         question = self._generate_question(request)
         qa_result = self._qa_check(request, question)
         nli_label = self._nli_check(request, question)
-        lexicon_hits, tox_prob = self._toxicity_check(request, question)
+        lexicon_hits, tox_prob, tox_flags = self._toxicity_check(request, question)
         policy_ok = self.config.policy.check_context_only(question, request.context)
 
         reasons = []
@@ -143,6 +149,8 @@ class SafeGenerationPipeline:
             reasons.append("lexicon_block")
         if tox_prob is not None and tox_prob > thresholds.tox_prob_max:
             reasons.append("tox_high")
+        if tox_flags:
+            reasons.extend(sorted(set(tox_flags)))
         if not self.config.policy.wh_allowed(qa_result["wh_detected"]):
             reasons.append("policy_violation")
         if not policy_ok:
@@ -157,6 +165,7 @@ class SafeGenerationPipeline:
             "qa_conf": qa_result["confidence"],
             "tox_prob": tox_prob,
             "nli": nli_label,
+            "lex_hits": len(lexicon_hits),
         }
         debug = {
             "decoding": self.config.decoding.__dict__,
@@ -213,12 +222,18 @@ class SafeGenerationPipeline:
 
     def _nli_check(self, request: GenerateRequest, question: str) -> str:
         hypothesis = question.rstrip(" ?")
+        if self.nli_service:
+            result = self.nli_service.predict([request.context], [hypothesis])[0]
+            return str(result["label"])
         return self.nli_model.classify(request.context, hypothesis)
 
-    def _toxicity_check(self, request: GenerateRequest, question: str) -> tuple[list[str], float]:
+    def _toxicity_check(self, request: GenerateRequest, question: str) -> tuple[list[str], float, list[str]]:
+        if self.toxicity_service:
+            tox_res = self.toxicity_service.score([question], request.lang, context=request.context)[0]
+            return tox_res.get("lexicon_hits", []), tox_res.get("prob"), tox_res.get("flags", [])
         lexicon_hits = self.config.lexicons.find_matches(question, request.lang)
         tox_prob = self.config.toxicity_classifier.score(question, request.lang, lexicon_hits)
-        return lexicon_hits, tox_prob
+        return lexicon_hits, tox_prob, []
 
     @staticmethod
     def _detect_wh(question: str) -> Optional[str]:
@@ -236,7 +251,9 @@ def build_pipeline(config: PipelineConfig) -> SafeGenerationPipeline:
     qa_en = StubQAModel()
     qa_multi = StubQAModel()
     nli = StubNLIModel()
-    return SafeGenerationPipeline(qg_model, qa_en, qa_multi, nli, config)
+    nli_service = NLIService(config.safety_config.get("nli", {}), device=config.runtime.device)
+    tox_service = ToxicityService(config.safety_config.get("toxicity", {}), device=config.runtime.device)
+    return SafeGenerationPipeline(qg_model, qa_en, qa_multi, nli, config, nli_service=nli_service, toxicity_service=tox_service)
 
 
 __all__ = ["SafeGenerationPipeline", "PipelineConfig", "build_pipeline", "QGDecodingConfig", "Thresholds", "RuntimeConfig"]

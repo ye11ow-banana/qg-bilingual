@@ -1,0 +1,26 @@
+device: "auto"
+batch_size: 16
+
+nli:
+  model: "facebook/bart-large-mnli"
+  require_entailment: true
+  neutral_ok: false
+  premise_source: "context"
+  hypothesis_template: "{question_wo_qm}"
+  thresholds:
+    entailment_min_prob: 0.50
+
+toxicity:
+  classifier_en: "unitary/toxic-bert"
+  classifier_multi: "cointegrated/rubert-tiny-toxicity"
+  prob_max: 0.40
+  use_lexicon_block: true
+  lexicons:
+    en: "src/qg_bilingual/safety/lexicons/en_toxic.json"
+    ua: "src/qg_bilingual/safety/lexicons/ua_toxic.json"
+  sensitive_groups: "src/qg_bilingual/safety/lexicons/sensitive_groups.json"
+
+policy:
+  context_only: true
+  forbid_unbacked_generalizations: true
+  check_protected_groups: true
