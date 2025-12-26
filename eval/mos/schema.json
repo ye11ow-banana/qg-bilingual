@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MOSAnnotation",
+  "type": "object",
+  "required": ["id", "mos", "flags"],
+  "properties": {
+    "id": {"type": "string"},
+    "mos": {"type": "integer", "minimum": 1, "maximum": 5},
+    "flags": {
+      "type": "array",
+      "items": {"enum": ["grammar", "ambiguous", "ooc", "wrong_wh", "too_long", "too_short", "toxic"]}
+    },
+    "comment": {"type": ["string", "null"]}
+  }
+}
