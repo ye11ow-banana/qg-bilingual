@@ -72,3 +72,9 @@ After validation, `models/.../metrics_val.json` contains combined text and QG→
   "conf_thr": 0.35
 }
 ```
+
+## Data preparation
+- English split generation: `uv run python data/scripts/prepare_en.py --out-dir data/artifacts/en --stats data/stats_en.json --seed 42`
+- Ukrainian projection: `uv run python data/scripts/prepare_ua.py --in-dir data/artifacts/en --out-dir data/artifacts/ua --stats data/stats_ua.json --seed 42`
+
+Both pipelines normalize text (NFKC + unified quotes/apostrophes + clean punctuation spacing), deduplicate by `(context, question)`, enforce length limits, and keep paragraph-level grouping together during the 80/10/10 splits. Unanswerable items are **kept by default** with `answer=""` and `unanswerable=true`; pass `--drop-unanswerable` to remove them early. Ukrainian data currently reuses English text via a `translate_en_to_ua` stub until a real translation model is plugged in.

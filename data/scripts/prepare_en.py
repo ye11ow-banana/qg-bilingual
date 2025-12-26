@@ -1,8 +1,10 @@
 import argparse
+import hashlib
 import json
 import random
 import re
 import sys
+import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
@@ -27,17 +29,19 @@ APOSTROPHE_MAP = {
 
 
 def normalize_text(text: str) -> str:
-    """Normalize quotes, apostrophes, spaces, and simple date spacing."""
-    text = text.replace("\u00a0", " ")
+    """Normalize text with NFKC, unified quotes/apostrophes, and clean spacing."""
+    text = unicodedata.normalize("NFKC", text.replace("\u00a0", " "))
     for src, dst in QUOTE_MAP.items():
         text = text.replace(src, dst)
     for src, dst in APOSTROPHE_MAP.items():
         text = text.replace(src, dst)
-    # normalize spacing around punctuation
+
+    # tighten spaces around punctuation and slashes
     text = re.sub(r"\s+", " ", text)
-    text = re.sub(r"\s*([,.;:!?])\s*", r" \1 ", text)
-    text = re.sub(r"\s+/\s+", "/", text)
-    text = re.sub(r"\s+-\s+", "-", text)
+    text = re.sub(r"\s+([,.;:!?])", r"\1", text)
+    text = re.sub(r"([,.;:!?])(?!\s|$)", r"\1 ", text)
+    text = re.sub(r"\s*/\s*", "/", text)
+    text = re.sub(r"\s*-\s*", "-", text)
     text = re.sub(r"\s+", " ", text)
     return text.strip()
 
@@ -45,13 +49,21 @@ def normalize_text(text: str) -> str:
 def align_answer(context: str, answer: str) -> Optional[str]:
     if not answer:
         return ""
-    if answer in context:
-        return answer
 
-    candidates = [answer.strip(), answer.strip().strip(".?!,;:"), answer.replace("’", "'"), answer.replace("'", "’")]
+    context_norm = normalize_text(context)
+    answer_norm = normalize_text(answer)
+    if answer_norm in context_norm:
+        return answer_norm
+
+    candidates = [
+        answer_norm.strip(),
+        answer_norm.strip().strip(".?!,;:"),
+        answer_norm.replace("’", "'"),
+        answer_norm.replace("'", "’"),
+    ]
     for cand in candidates:
         cand_norm = normalize_text(cand)
-        if cand_norm in context:
+        if cand_norm in context_norm:
             return cand_norm
     return None
 
@@ -109,21 +121,26 @@ def stratified_group_split(groups: Dict[str, List[Dict]], seed: int) -> Dict[str
     rnd = random.Random(seed)
     rnd.shuffle(group_keys)
 
-    total = sum(len(groups[k]) for k in group_keys)
-    target_train = int(total * 0.8)
-    target_val = int(total * 0.1)
+    total_groups = len(group_keys)
+    if total_groups == 0:
+        return {"train": [], "val": [], "test": []}
+
+    # Allocate per-group to preserve paragraph integrity and avoid empty splits
+    train_groups = max(1, int(round(total_groups * 0.8))) if total_groups >= 2 else total_groups
+    val_groups = max(1, int(round(total_groups * 0.1))) if total_groups >= 3 else (1 if total_groups == 2 else 0)
+    if train_groups + val_groups > total_groups:
+        val_groups = max(0, total_groups - train_groups)
+    test_groups = max(0, total_groups - train_groups - val_groups)
 
     splits = {"train": [], "val": [], "test": []}
-    counts = {"train": 0, "val": 0, "test": 0}
-    for key in group_keys:
-        if counts["train"] < target_train:
+    for idx, key in enumerate(group_keys):
+        if idx < train_groups:
             split = "train"
-        elif counts["val"] < target_val:
+        elif idx < train_groups + val_groups:
             split = "val"
         else:
             split = "test"
         splits[split].extend(groups[key])
-        counts[split] += len(groups[key])
     return splits
 
 
@@ -143,11 +160,12 @@ def load_squad_rows(args) -> List[Dict]:
         raise
 
 
-def process_dataset(args) -> Tuple[Dict[str, List[Dict]], Counter]:
+def process_dataset(args) -> Tuple[Dict[str, List[Dict]], Counter, List[Dict]]:
     all_rows = load_squad_rows(args)
 
     dedup = set()
     dropped = Counter()
+    drop_records: List[Dict] = []
     grouped: Dict[str, List[Dict]] = defaultdict(list)
 
     for raw in all_rows:
@@ -158,6 +176,7 @@ def process_dataset(args) -> Tuple[Dict[str, List[Dict]], Counter]:
 
         if unanswerable and args.drop_unanswerable:
             dropped["unanswerable_dropped"] += 1
+            drop_records.append({"reason": "unanswerable_dropped", "title": title})
             continue
 
         answers = raw.get("answers", {}).get("text") or []
@@ -167,28 +186,34 @@ def process_dataset(args) -> Tuple[Dict[str, List[Dict]], Counter]:
 
         if not length_ok(context, args.min_context, args.max_context):
             dropped["context_length"] += 1
+            drop_records.append({"reason": "len_filter", "field": "context", "title": title})
             continue
         if not length_ok(question, args.min_question, args.max_question):
             dropped["question_length"] += 1
+            drop_records.append({"reason": "len_filter", "field": "question", "title": title})
             continue
         if not unanswerable and not length_ok(answer_text, args.min_answer, args.max_answer):
             dropped["answer_length"] += 1
+            drop_records.append({"reason": "len_filter", "field": "answer", "title": title})
             continue
 
         if not unanswerable:
             aligned = align_answer(context, answer_text)
             if aligned is None:
                 dropped["answer_not_in_context"] += 1
+                drop_records.append({"reason": "answer_not_in_context", "title": title})
                 continue
             answer_text = aligned
 
         key = (context, question)
         if key in dedup:
             dropped["duplicate"] += 1
+            drop_records.append({"reason": "duplicate", "title": title})
             continue
         dedup.add(key)
 
-        group_id = f"{title}::{hash(context)}"
+        group_hash = hashlib.md5(context.encode("utf-8")).hexdigest()
+        group_id = f"{title}::{group_hash}"
         grouped[group_id].append(
             {
                 "context": context,
@@ -200,7 +225,7 @@ def process_dataset(args) -> Tuple[Dict[str, List[Dict]], Counter]:
         )
 
     splits = stratified_group_split(grouped, args.seed)
-    return splits, dropped
+    return splits, dropped, drop_records
 
 
 def parse_args():
@@ -234,7 +259,7 @@ def main():
     prep_logs.mkdir(parents=True, exist_ok=True)
     dropped_log = prep_logs / "en_dropped.jsonl"
 
-    splits, dropped = process_dataset(args)
+    splits, dropped, drop_records = process_dataset(args)
 
     for split, rows in splits.items():
         save_jsonl(args.out_dir / f"{split}.jsonl", rows)
@@ -244,8 +269,9 @@ def main():
     args.stats.write_text(json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
 
     with dropped_log.open("w", encoding="utf-8") as f:
-        for reason, count in dropped.items():
-            f.write(json.dumps({"reason": reason, "count": count}) + "\n")
+        for rec in drop_records:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        f.write(json.dumps({"summary": dropped}, ensure_ascii=False) + "\n")
 
 
 if __name__ == "__main__":

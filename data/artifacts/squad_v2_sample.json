@@ -1,86 +1,3222 @@
 [
   {
-    "context": "The Apollo program was the third United States human spaceflight program carried out by NASA, which accomplished landing the first humans on the Moon.",
-    "question": "Which NASA program landed the first humans on the Moon?",
-    "answers": {"text": ["The Apollo program"]},
-    "is_impossible": false,
-    "title": "Apollo"
+    "id": "1-a",
+    "title": "passage_1",
+    "context": "City 1 is situated along the River 1. It hosts the Festival 1 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 1?",
+    "answers": {
+      "text": [
+        "River 1"
+      ],
+      "answer_start": [
+        29
+      ]
+    },
+    "is_impossible": false
   },
   {
-    "context": "The Apollo program was the third United States human spaceflight program carried out by NASA, which accomplished landing the first humans on the Moon.",
-    "question": "Who ran the Apollo program?",
-    "answers": {"text": ["NASA"]},
-    "is_impossible": false,
-    "title": "Apollo"
+    "id": "1-b",
+    "title": "passage_1",
+    "context": "City 1 is situated along the River 1. It hosts the Festival 1 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 1 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 1"
+      ],
+      "answer_start": [
+        51
+      ]
+    },
+    "is_impossible": false
   },
   {
-    "context": "The Apollo program was the third United States human spaceflight program carried out by NASA, which accomplished landing the first humans on the Moon.",
-    "question": "What did the Apollo program accomplish?",
-    "answers": {"text": ["landing the first humans on the Moon"]},
-    "is_impossible": false,
-    "title": "Apollo"
+    "id": "1-c",
+    "title": "passage_1",
+    "context": "City 1 is situated along the River 1. It hosts the Festival 1 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 1?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        146
+      ]
+    },
+    "is_impossible": false
   },
   {
-    "context": "Python is a high-level, interpreted programming language known for its readability and wide range of applications from web development to data science and automation.",
-    "question": "What type of language is Python?",
-    "answers": {"text": ["a high-level, interpreted programming language"]},
-    "is_impossible": false,
-    "title": "Python"
+    "id": "2-a",
+    "title": "passage_2",
+    "context": "City 2 is situated along the River 2. It hosts the Festival 2 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 2?",
+    "answers": {
+      "text": [
+        "River 2"
+      ],
+      "answer_start": [
+        29
+      ]
+    },
+    "is_impossible": false
   },
   {
-    "context": "Python is a high-level, interpreted programming language known for its readability and wide range of applications from web development to data science and automation.",
-    "question": "Name one domain where Python is used.",
-    "answers": {"text": ["web development"]},
-    "is_impossible": false,
-    "title": "Python"
+    "id": "2-b",
+    "title": "passage_2",
+    "context": "City 2 is situated along the River 2. It hosts the Festival 2 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 2 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 2"
+      ],
+      "answer_start": [
+        51
+      ]
+    },
+    "is_impossible": false
   },
   {
-    "context": "Python is a high-level, interpreted programming language known for its readability and wide range of applications from web development to data science and automation.",
-    "question": "What quality is Python known for?",
-    "answers": {"text": ["readability"]},
-    "is_impossible": false,
-    "title": "Python"
+    "id": "2-c",
+    "title": "passage_2",
+    "context": "City 2 is situated along the River 2. It hosts the Festival 2 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 2?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        146
+      ]
+    },
+    "is_impossible": false
   },
   {
-    "context": "Kyiv is the capital and most populous city of Ukraine, situated on the Dnipro River and known for its historical architecture and modern tech industry.",
-    "question": "Which river is Kyiv situated on?",
-    "answers": {"text": ["the Dnipro River"]},
-    "is_impossible": false,
-    "title": "Kyiv"
+    "id": "3-a",
+    "title": "passage_3",
+    "context": "City 3 is situated along the River 3. It hosts the Festival 3 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 3?",
+    "answers": {
+      "text": [
+        "River 3"
+      ],
+      "answer_start": [
+        29
+      ]
+    },
+    "is_impossible": false
   },
   {
-    "context": "Kyiv is the capital and most populous city of Ukraine, situated on the Dnipro River and known for its historical architecture and modern tech industry.",
-    "question": "What is Kyiv known for besides history?",
-    "answers": {"text": ["modern tech industry"]},
-    "is_impossible": false,
-    "title": "Kyiv"
+    "id": "3-b",
+    "title": "passage_3",
+    "context": "City 3 is situated along the River 3. It hosts the Festival 3 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 3 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 3"
+      ],
+      "answer_start": [
+        51
+      ]
+    },
+    "is_impossible": false
   },
   {
-    "context": "Kyiv is the capital and most populous city of Ukraine, situated on the Dnipro River and known for its historical architecture and modern tech industry.",
-    "question": "What country is Kyiv the capital of?",
-    "answers": {"text": ["Ukraine"]},
-    "is_impossible": false,
-    "title": "Kyiv"
+    "id": "3-c",
+    "title": "passage_3",
+    "context": "City 3 is situated along the River 3. It hosts the Festival 3 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 3?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        146
+      ]
+    },
+    "is_impossible": false
   },
   {
-    "context": "During the Renaissance, artists like Leonardo da Vinci and Michelangelo advanced techniques in perspective and anatomy, influencing art for centuries.",
-    "question": "Name one artist from the Renaissance mentioned.",
-    "answers": {"text": ["Leonardo da Vinci"]},
-    "is_impossible": false,
-    "title": "Renaissance"
+    "id": "4-a",
+    "title": "passage_4",
+    "context": "City 4 is situated along the River 4. It hosts the Festival 4 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 4?",
+    "answers": {
+      "text": [
+        "River 4"
+      ],
+      "answer_start": [
+        29
+      ]
+    },
+    "is_impossible": false
   },
   {
-    "context": "During the Renaissance, artists like Leonardo da Vinci and Michelangelo advanced techniques in perspective and anatomy, influencing art for centuries.",
-    "question": "What techniques were advanced during the Renaissance?",
-    "answers": {"text": ["perspective and anatomy"]},
-    "is_impossible": false,
-    "title": "Renaissance"
+    "id": "4-b",
+    "title": "passage_4",
+    "context": "City 4 is situated along the River 4. It hosts the Festival 4 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 4 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 4"
+      ],
+      "answer_start": [
+        51
+      ]
+    },
+    "is_impossible": false
   },
   {
-    "context": "During the Renaissance, artists like Leonardo da Vinci and Michelangelo advanced techniques in perspective and anatomy, influencing art for centuries.",
-    "question": "Was perspective influenced during the Renaissance?",
-    "answers": {"text": ["Yes"]},
-    "is_impossible": true,
-    "title": "Renaissance"
+    "id": "4-c",
+    "title": "passage_4",
+    "context": "City 4 is situated along the River 4. It hosts the Festival 4 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 4?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        146
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "5-a",
+    "title": "passage_5",
+    "context": "City 5 is situated along the River 5. It hosts the Festival 5 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 5?",
+    "answers": {
+      "text": [
+        "River 5"
+      ],
+      "answer_start": [
+        29
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "5-b",
+    "title": "passage_5",
+    "context": "City 5 is situated along the River 5. It hosts the Festival 5 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 5 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 5"
+      ],
+      "answer_start": [
+        51
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "5-c",
+    "title": "passage_5",
+    "context": "City 5 is situated along the River 5. It hosts the Festival 5 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 5?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        146
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "6-a",
+    "title": "passage_6",
+    "context": "City 6 is situated along the River 6. It hosts the Festival 6 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 6?",
+    "answers": {
+      "text": [
+        "River 6"
+      ],
+      "answer_start": [
+        29
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "6-b",
+    "title": "passage_6",
+    "context": "City 6 is situated along the River 6. It hosts the Festival 6 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 6 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 6"
+      ],
+      "answer_start": [
+        51
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "6-c",
+    "title": "passage_6",
+    "context": "City 6 is situated along the River 6. It hosts the Festival 6 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 6?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        146
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "7-a",
+    "title": "passage_7",
+    "context": "City 7 is situated along the River 7. It hosts the Festival 7 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 7?",
+    "answers": {
+      "text": [
+        "River 7"
+      ],
+      "answer_start": [
+        29
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "7-b",
+    "title": "passage_7",
+    "context": "City 7 is situated along the River 7. It hosts the Festival 7 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 7 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 7"
+      ],
+      "answer_start": [
+        51
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "7-c",
+    "title": "passage_7",
+    "context": "City 7 is situated along the River 7. It hosts the Festival 7 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 7?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        146
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "8-a",
+    "title": "passage_8",
+    "context": "City 8 is situated along the River 8. It hosts the Festival 8 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 8?",
+    "answers": {
+      "text": [
+        "River 8"
+      ],
+      "answer_start": [
+        29
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "8-b",
+    "title": "passage_8",
+    "context": "City 8 is situated along the River 8. It hosts the Festival 8 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 8 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 8"
+      ],
+      "answer_start": [
+        51
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "8-c",
+    "title": "passage_8",
+    "context": "City 8 is situated along the River 8. It hosts the Festival 8 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 8?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        146
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "9-a",
+    "title": "passage_9",
+    "context": "City 9 is situated along the River 9. It hosts the Festival 9 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 9?",
+    "answers": {
+      "text": [
+        "River 9"
+      ],
+      "answer_start": [
+        29
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "9-b",
+    "title": "passage_9",
+    "context": "City 9 is situated along the River 9. It hosts the Festival 9 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 9 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 9"
+      ],
+      "answer_start": [
+        51
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "9-c",
+    "title": "passage_9",
+    "context": "City 9 is situated along the River 9. It hosts the Festival 9 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 9?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        146
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "10-a",
+    "title": "passage_10",
+    "context": "City 10 is situated along the River 10. It hosts the Festival 10 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 10?",
+    "answers": {
+      "text": [
+        "River 10"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "10-b",
+    "title": "passage_10",
+    "context": "City 10 is situated along the River 10. It hosts the Festival 10 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 10 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 10"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "10-c",
+    "title": "passage_10",
+    "context": "City 10 is situated along the River 10. It hosts the Festival 10 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 10?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "10-unans",
+    "title": "passage_10",
+    "context": "City 10 is situated along the River 10. It hosts the Festival 10 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which Nobel prize winner grew up in City 10?",
+    "answers": {
+      "text": []
+    },
+    "is_impossible": true
+  },
+  {
+    "id": "11-a",
+    "title": "passage_11",
+    "context": "City 11 is situated along the River 11. It hosts the Festival 11 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 11?",
+    "answers": {
+      "text": [
+        "River 11"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "11-b",
+    "title": "passage_11",
+    "context": "City 11 is situated along the River 11. It hosts the Festival 11 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 11 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 11"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "11-c",
+    "title": "passage_11",
+    "context": "City 11 is situated along the River 11. It hosts the Festival 11 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 11?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "12-a",
+    "title": "passage_12",
+    "context": "City 12 is situated along the River 12. It hosts the Festival 12 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 12?",
+    "answers": {
+      "text": [
+        "River 12"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "12-b",
+    "title": "passage_12",
+    "context": "City 12 is situated along the River 12. It hosts the Festival 12 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 12 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 12"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "12-c",
+    "title": "passage_12",
+    "context": "City 12 is situated along the River 12. It hosts the Festival 12 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 12?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "13-a",
+    "title": "passage_13",
+    "context": "City 13 is situated along the River 13. It hosts the Festival 13 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 13?",
+    "answers": {
+      "text": [
+        "River 13"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "13-b",
+    "title": "passage_13",
+    "context": "City 13 is situated along the River 13. It hosts the Festival 13 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 13 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 13"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "13-c",
+    "title": "passage_13",
+    "context": "City 13 is situated along the River 13. It hosts the Festival 13 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 13?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "14-a",
+    "title": "passage_14",
+    "context": "City 14 is situated along the River 14. It hosts the Festival 14 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 14?",
+    "answers": {
+      "text": [
+        "River 14"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "14-b",
+    "title": "passage_14",
+    "context": "City 14 is situated along the River 14. It hosts the Festival 14 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 14 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 14"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "14-c",
+    "title": "passage_14",
+    "context": "City 14 is situated along the River 14. It hosts the Festival 14 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 14?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "15-a",
+    "title": "passage_15",
+    "context": "City 15 is situated along the River 15. It hosts the Festival 15 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 15?",
+    "answers": {
+      "text": [
+        "River 15"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "15-b",
+    "title": "passage_15",
+    "context": "City 15 is situated along the River 15. It hosts the Festival 15 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 15 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 15"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "15-c",
+    "title": "passage_15",
+    "context": "City 15 is situated along the River 15. It hosts the Festival 15 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 15?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "16-a",
+    "title": "passage_16",
+    "context": "City 16 is situated along the River 16. It hosts the Festival 16 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 16?",
+    "answers": {
+      "text": [
+        "River 16"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "16-b",
+    "title": "passage_16",
+    "context": "City 16 is situated along the River 16. It hosts the Festival 16 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 16 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 16"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "16-c",
+    "title": "passage_16",
+    "context": "City 16 is situated along the River 16. It hosts the Festival 16 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 16?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "17-a",
+    "title": "passage_17",
+    "context": "City 17 is situated along the River 17. It hosts the Festival 17 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 17?",
+    "answers": {
+      "text": [
+        "River 17"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "17-b",
+    "title": "passage_17",
+    "context": "City 17 is situated along the River 17. It hosts the Festival 17 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 17 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 17"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "17-c",
+    "title": "passage_17",
+    "context": "City 17 is situated along the River 17. It hosts the Festival 17 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 17?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "18-a",
+    "title": "passage_18",
+    "context": "City 18 is situated along the River 18. It hosts the Festival 18 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 18?",
+    "answers": {
+      "text": [
+        "River 18"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "18-b",
+    "title": "passage_18",
+    "context": "City 18 is situated along the River 18. It hosts the Festival 18 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 18 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 18"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "18-c",
+    "title": "passage_18",
+    "context": "City 18 is situated along the River 18. It hosts the Festival 18 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 18?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "19-a",
+    "title": "passage_19",
+    "context": "City 19 is situated along the River 19. It hosts the Festival 19 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 19?",
+    "answers": {
+      "text": [
+        "River 19"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "19-b",
+    "title": "passage_19",
+    "context": "City 19 is situated along the River 19. It hosts the Festival 19 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 19 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 19"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "19-c",
+    "title": "passage_19",
+    "context": "City 19 is situated along the River 19. It hosts the Festival 19 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 19?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "20-a",
+    "title": "passage_20",
+    "context": "City 20 is situated along the River 20. It hosts the Festival 20 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 20?",
+    "answers": {
+      "text": [
+        "River 20"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "20-b",
+    "title": "passage_20",
+    "context": "City 20 is situated along the River 20. It hosts the Festival 20 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 20 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 20"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "20-c",
+    "title": "passage_20",
+    "context": "City 20 is situated along the River 20. It hosts the Festival 20 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 20?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "20-unans",
+    "title": "passage_20",
+    "context": "City 20 is situated along the River 20. It hosts the Festival 20 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which Nobel prize winner grew up in City 20?",
+    "answers": {
+      "text": []
+    },
+    "is_impossible": true
+  },
+  {
+    "id": "21-a",
+    "title": "passage_21",
+    "context": "City 21 is situated along the River 21. It hosts the Festival 21 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 21?",
+    "answers": {
+      "text": [
+        "River 21"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "21-b",
+    "title": "passage_21",
+    "context": "City 21 is situated along the River 21. It hosts the Festival 21 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 21 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 21"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "21-c",
+    "title": "passage_21",
+    "context": "City 21 is situated along the River 21. It hosts the Festival 21 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 21?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "22-a",
+    "title": "passage_22",
+    "context": "City 22 is situated along the River 22. It hosts the Festival 22 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 22?",
+    "answers": {
+      "text": [
+        "River 22"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "22-b",
+    "title": "passage_22",
+    "context": "City 22 is situated along the River 22. It hosts the Festival 22 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 22 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 22"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "22-c",
+    "title": "passage_22",
+    "context": "City 22 is situated along the River 22. It hosts the Festival 22 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 22?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "23-a",
+    "title": "passage_23",
+    "context": "City 23 is situated along the River 23. It hosts the Festival 23 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 23?",
+    "answers": {
+      "text": [
+        "River 23"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "23-b",
+    "title": "passage_23",
+    "context": "City 23 is situated along the River 23. It hosts the Festival 23 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 23 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 23"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "23-c",
+    "title": "passage_23",
+    "context": "City 23 is situated along the River 23. It hosts the Festival 23 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 23?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "24-a",
+    "title": "passage_24",
+    "context": "City 24 is situated along the River 24. It hosts the Festival 24 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 24?",
+    "answers": {
+      "text": [
+        "River 24"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "24-b",
+    "title": "passage_24",
+    "context": "City 24 is situated along the River 24. It hosts the Festival 24 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 24 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 24"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "24-c",
+    "title": "passage_24",
+    "context": "City 24 is situated along the River 24. It hosts the Festival 24 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 24?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "25-a",
+    "title": "passage_25",
+    "context": "City 25 is situated along the River 25. It hosts the Festival 25 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 25?",
+    "answers": {
+      "text": [
+        "River 25"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "25-b",
+    "title": "passage_25",
+    "context": "City 25 is situated along the River 25. It hosts the Festival 25 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 25 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 25"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "25-c",
+    "title": "passage_25",
+    "context": "City 25 is situated along the River 25. It hosts the Festival 25 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 25?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "26-a",
+    "title": "passage_26",
+    "context": "City 26 is situated along the River 26. It hosts the Festival 26 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 26?",
+    "answers": {
+      "text": [
+        "River 26"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "26-b",
+    "title": "passage_26",
+    "context": "City 26 is situated along the River 26. It hosts the Festival 26 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 26 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 26"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "26-c",
+    "title": "passage_26",
+    "context": "City 26 is situated along the River 26. It hosts the Festival 26 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 26?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "27-a",
+    "title": "passage_27",
+    "context": "City 27 is situated along the River 27. It hosts the Festival 27 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 27?",
+    "answers": {
+      "text": [
+        "River 27"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "27-b",
+    "title": "passage_27",
+    "context": "City 27 is situated along the River 27. It hosts the Festival 27 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 27 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 27"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "27-c",
+    "title": "passage_27",
+    "context": "City 27 is situated along the River 27. It hosts the Festival 27 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 27?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "28-a",
+    "title": "passage_28",
+    "context": "City 28 is situated along the River 28. It hosts the Festival 28 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 28?",
+    "answers": {
+      "text": [
+        "River 28"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "28-b",
+    "title": "passage_28",
+    "context": "City 28 is situated along the River 28. It hosts the Festival 28 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 28 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 28"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "28-c",
+    "title": "passage_28",
+    "context": "City 28 is situated along the River 28. It hosts the Festival 28 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 28?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "29-a",
+    "title": "passage_29",
+    "context": "City 29 is situated along the River 29. It hosts the Festival 29 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 29?",
+    "answers": {
+      "text": [
+        "River 29"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "29-b",
+    "title": "passage_29",
+    "context": "City 29 is situated along the River 29. It hosts the Festival 29 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 29 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 29"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "29-c",
+    "title": "passage_29",
+    "context": "City 29 is situated along the River 29. It hosts the Festival 29 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 29?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "30-a",
+    "title": "passage_30",
+    "context": "City 30 is situated along the River 30. It hosts the Festival 30 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 30?",
+    "answers": {
+      "text": [
+        "River 30"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "30-b",
+    "title": "passage_30",
+    "context": "City 30 is situated along the River 30. It hosts the Festival 30 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 30 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 30"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "30-c",
+    "title": "passage_30",
+    "context": "City 30 is situated along the River 30. It hosts the Festival 30 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 30?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "30-unans",
+    "title": "passage_30",
+    "context": "City 30 is situated along the River 30. It hosts the Festival 30 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which Nobel prize winner grew up in City 30?",
+    "answers": {
+      "text": []
+    },
+    "is_impossible": true
+  },
+  {
+    "id": "31-a",
+    "title": "passage_31",
+    "context": "City 31 is situated along the River 31. It hosts the Festival 31 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 31?",
+    "answers": {
+      "text": [
+        "River 31"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "31-b",
+    "title": "passage_31",
+    "context": "City 31 is situated along the River 31. It hosts the Festival 31 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 31 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 31"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "31-c",
+    "title": "passage_31",
+    "context": "City 31 is situated along the River 31. It hosts the Festival 31 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 31?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "32-a",
+    "title": "passage_32",
+    "context": "City 32 is situated along the River 32. It hosts the Festival 32 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 32?",
+    "answers": {
+      "text": [
+        "River 32"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "32-b",
+    "title": "passage_32",
+    "context": "City 32 is situated along the River 32. It hosts the Festival 32 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 32 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 32"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "32-c",
+    "title": "passage_32",
+    "context": "City 32 is situated along the River 32. It hosts the Festival 32 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 32?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "33-a",
+    "title": "passage_33",
+    "context": "City 33 is situated along the River 33. It hosts the Festival 33 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 33?",
+    "answers": {
+      "text": [
+        "River 33"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "33-b",
+    "title": "passage_33",
+    "context": "City 33 is situated along the River 33. It hosts the Festival 33 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 33 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 33"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "33-c",
+    "title": "passage_33",
+    "context": "City 33 is situated along the River 33. It hosts the Festival 33 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 33?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "34-a",
+    "title": "passage_34",
+    "context": "City 34 is situated along the River 34. It hosts the Festival 34 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 34?",
+    "answers": {
+      "text": [
+        "River 34"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "34-b",
+    "title": "passage_34",
+    "context": "City 34 is situated along the River 34. It hosts the Festival 34 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 34 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 34"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "34-c",
+    "title": "passage_34",
+    "context": "City 34 is situated along the River 34. It hosts the Festival 34 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 34?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "35-a",
+    "title": "passage_35",
+    "context": "City 35 is situated along the River 35. It hosts the Festival 35 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 35?",
+    "answers": {
+      "text": [
+        "River 35"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "35-b",
+    "title": "passage_35",
+    "context": "City 35 is situated along the River 35. It hosts the Festival 35 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 35 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 35"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "35-c",
+    "title": "passage_35",
+    "context": "City 35 is situated along the River 35. It hosts the Festival 35 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 35?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "36-a",
+    "title": "passage_36",
+    "context": "City 36 is situated along the River 36. It hosts the Festival 36 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 36?",
+    "answers": {
+      "text": [
+        "River 36"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "36-b",
+    "title": "passage_36",
+    "context": "City 36 is situated along the River 36. It hosts the Festival 36 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 36 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 36"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "36-c",
+    "title": "passage_36",
+    "context": "City 36 is situated along the River 36. It hosts the Festival 36 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 36?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "37-a",
+    "title": "passage_37",
+    "context": "City 37 is situated along the River 37. It hosts the Festival 37 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 37?",
+    "answers": {
+      "text": [
+        "River 37"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "37-b",
+    "title": "passage_37",
+    "context": "City 37 is situated along the River 37. It hosts the Festival 37 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 37 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 37"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "37-c",
+    "title": "passage_37",
+    "context": "City 37 is situated along the River 37. It hosts the Festival 37 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 37?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "38-a",
+    "title": "passage_38",
+    "context": "City 38 is situated along the River 38. It hosts the Festival 38 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 38?",
+    "answers": {
+      "text": [
+        "River 38"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "38-b",
+    "title": "passage_38",
+    "context": "City 38 is situated along the River 38. It hosts the Festival 38 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 38 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 38"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "38-c",
+    "title": "passage_38",
+    "context": "City 38 is situated along the River 38. It hosts the Festival 38 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 38?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "39-a",
+    "title": "passage_39",
+    "context": "City 39 is situated along the River 39. It hosts the Festival 39 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 39?",
+    "answers": {
+      "text": [
+        "River 39"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "39-b",
+    "title": "passage_39",
+    "context": "City 39 is situated along the River 39. It hosts the Festival 39 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 39 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 39"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "39-c",
+    "title": "passage_39",
+    "context": "City 39 is situated along the River 39. It hosts the Festival 39 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 39?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "40-a",
+    "title": "passage_40",
+    "context": "City 40 is situated along the River 40. It hosts the Festival 40 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 40?",
+    "answers": {
+      "text": [
+        "River 40"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "40-b",
+    "title": "passage_40",
+    "context": "City 40 is situated along the River 40. It hosts the Festival 40 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 40 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 40"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "40-c",
+    "title": "passage_40",
+    "context": "City 40 is situated along the River 40. It hosts the Festival 40 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 40?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "40-unans",
+    "title": "passage_40",
+    "context": "City 40 is situated along the River 40. It hosts the Festival 40 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which Nobel prize winner grew up in City 40?",
+    "answers": {
+      "text": []
+    },
+    "is_impossible": true
+  },
+  {
+    "id": "41-a",
+    "title": "passage_41",
+    "context": "City 41 is situated along the River 41. It hosts the Festival 41 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 41?",
+    "answers": {
+      "text": [
+        "River 41"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "41-b",
+    "title": "passage_41",
+    "context": "City 41 is situated along the River 41. It hosts the Festival 41 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 41 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 41"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "41-c",
+    "title": "passage_41",
+    "context": "City 41 is situated along the River 41. It hosts the Festival 41 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 41?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "42-a",
+    "title": "passage_42",
+    "context": "City 42 is situated along the River 42. It hosts the Festival 42 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 42?",
+    "answers": {
+      "text": [
+        "River 42"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "42-b",
+    "title": "passage_42",
+    "context": "City 42 is situated along the River 42. It hosts the Festival 42 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 42 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 42"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "42-c",
+    "title": "passage_42",
+    "context": "City 42 is situated along the River 42. It hosts the Festival 42 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 42?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "43-a",
+    "title": "passage_43",
+    "context": "City 43 is situated along the River 43. It hosts the Festival 43 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 43?",
+    "answers": {
+      "text": [
+        "River 43"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "43-b",
+    "title": "passage_43",
+    "context": "City 43 is situated along the River 43. It hosts the Festival 43 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 43 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 43"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "43-c",
+    "title": "passage_43",
+    "context": "City 43 is situated along the River 43. It hosts the Festival 43 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 43?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "44-a",
+    "title": "passage_44",
+    "context": "City 44 is situated along the River 44. It hosts the Festival 44 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 44?",
+    "answers": {
+      "text": [
+        "River 44"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "44-b",
+    "title": "passage_44",
+    "context": "City 44 is situated along the River 44. It hosts the Festival 44 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 44 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 44"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "44-c",
+    "title": "passage_44",
+    "context": "City 44 is situated along the River 44. It hosts the Festival 44 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 44?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "45-a",
+    "title": "passage_45",
+    "context": "City 45 is situated along the River 45. It hosts the Festival 45 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 45?",
+    "answers": {
+      "text": [
+        "River 45"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "45-b",
+    "title": "passage_45",
+    "context": "City 45 is situated along the River 45. It hosts the Festival 45 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 45 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 45"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "45-c",
+    "title": "passage_45",
+    "context": "City 45 is situated along the River 45. It hosts the Festival 45 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 45?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "46-a",
+    "title": "passage_46",
+    "context": "City 46 is situated along the River 46. It hosts the Festival 46 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 46?",
+    "answers": {
+      "text": [
+        "River 46"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "46-b",
+    "title": "passage_46",
+    "context": "City 46 is situated along the River 46. It hosts the Festival 46 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 46 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 46"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "46-c",
+    "title": "passage_46",
+    "context": "City 46 is situated along the River 46. It hosts the Festival 46 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 46?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "47-a",
+    "title": "passage_47",
+    "context": "City 47 is situated along the River 47. It hosts the Festival 47 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 47?",
+    "answers": {
+      "text": [
+        "River 47"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "47-b",
+    "title": "passage_47",
+    "context": "City 47 is situated along the River 47. It hosts the Festival 47 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 47 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 47"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "47-c",
+    "title": "passage_47",
+    "context": "City 47 is situated along the River 47. It hosts the Festival 47 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 47?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "48-a",
+    "title": "passage_48",
+    "context": "City 48 is situated along the River 48. It hosts the Festival 48 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 48?",
+    "answers": {
+      "text": [
+        "River 48"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "48-b",
+    "title": "passage_48",
+    "context": "City 48 is situated along the River 48. It hosts the Festival 48 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 48 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 48"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "48-c",
+    "title": "passage_48",
+    "context": "City 48 is situated along the River 48. It hosts the Festival 48 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 48?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "49-a",
+    "title": "passage_49",
+    "context": "City 49 is situated along the River 49. It hosts the Festival 49 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 49?",
+    "answers": {
+      "text": [
+        "River 49"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "49-b",
+    "title": "passage_49",
+    "context": "City 49 is situated along the River 49. It hosts the Festival 49 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 49 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 49"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "49-c",
+    "title": "passage_49",
+    "context": "City 49 is situated along the River 49. It hosts the Festival 49 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 49?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "50-a",
+    "title": "passage_50",
+    "context": "City 50 is situated along the River 50. It hosts the Festival 50 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 50?",
+    "answers": {
+      "text": [
+        "River 50"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "50-b",
+    "title": "passage_50",
+    "context": "City 50 is situated along the River 50. It hosts the Festival 50 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 50 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 50"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "50-c",
+    "title": "passage_50",
+    "context": "City 50 is situated along the River 50. It hosts the Festival 50 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 50?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "50-unans",
+    "title": "passage_50",
+    "context": "City 50 is situated along the River 50. It hosts the Festival 50 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which Nobel prize winner grew up in City 50?",
+    "answers": {
+      "text": []
+    },
+    "is_impossible": true
+  },
+  {
+    "id": "51-a",
+    "title": "passage_51",
+    "context": "City 51 is situated along the River 51. It hosts the Festival 51 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 51?",
+    "answers": {
+      "text": [
+        "River 51"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "51-b",
+    "title": "passage_51",
+    "context": "City 51 is situated along the River 51. It hosts the Festival 51 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 51 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 51"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "51-c",
+    "title": "passage_51",
+    "context": "City 51 is situated along the River 51. It hosts the Festival 51 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 51?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "52-a",
+    "title": "passage_52",
+    "context": "City 52 is situated along the River 52. It hosts the Festival 52 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 52?",
+    "answers": {
+      "text": [
+        "River 52"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "52-b",
+    "title": "passage_52",
+    "context": "City 52 is situated along the River 52. It hosts the Festival 52 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 52 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 52"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "52-c",
+    "title": "passage_52",
+    "context": "City 52 is situated along the River 52. It hosts the Festival 52 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 52?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "53-a",
+    "title": "passage_53",
+    "context": "City 53 is situated along the River 53. It hosts the Festival 53 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 53?",
+    "answers": {
+      "text": [
+        "River 53"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "53-b",
+    "title": "passage_53",
+    "context": "City 53 is situated along the River 53. It hosts the Festival 53 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 53 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 53"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "53-c",
+    "title": "passage_53",
+    "context": "City 53 is situated along the River 53. It hosts the Festival 53 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 53?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "54-a",
+    "title": "passage_54",
+    "context": "City 54 is situated along the River 54. It hosts the Festival 54 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 54?",
+    "answers": {
+      "text": [
+        "River 54"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "54-b",
+    "title": "passage_54",
+    "context": "City 54 is situated along the River 54. It hosts the Festival 54 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 54 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 54"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "54-c",
+    "title": "passage_54",
+    "context": "City 54 is situated along the River 54. It hosts the Festival 54 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 54?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "55-a",
+    "title": "passage_55",
+    "context": "City 55 is situated along the River 55. It hosts the Festival 55 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 55?",
+    "answers": {
+      "text": [
+        "River 55"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "55-b",
+    "title": "passage_55",
+    "context": "City 55 is situated along the River 55. It hosts the Festival 55 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 55 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 55"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "55-c",
+    "title": "passage_55",
+    "context": "City 55 is situated along the River 55. It hosts the Festival 55 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 55?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "56-a",
+    "title": "passage_56",
+    "context": "City 56 is situated along the River 56. It hosts the Festival 56 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 56?",
+    "answers": {
+      "text": [
+        "River 56"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "56-b",
+    "title": "passage_56",
+    "context": "City 56 is situated along the River 56. It hosts the Festival 56 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 56 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 56"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "56-c",
+    "title": "passage_56",
+    "context": "City 56 is situated along the River 56. It hosts the Festival 56 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 56?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "57-a",
+    "title": "passage_57",
+    "context": "City 57 is situated along the River 57. It hosts the Festival 57 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 57?",
+    "answers": {
+      "text": [
+        "River 57"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "57-b",
+    "title": "passage_57",
+    "context": "City 57 is situated along the River 57. It hosts the Festival 57 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 57 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 57"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "57-c",
+    "title": "passage_57",
+    "context": "City 57 is situated along the River 57. It hosts the Festival 57 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 57?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "58-a",
+    "title": "passage_58",
+    "context": "City 58 is situated along the River 58. It hosts the Festival 58 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 58?",
+    "answers": {
+      "text": [
+        "River 58"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "58-b",
+    "title": "passage_58",
+    "context": "City 58 is situated along the River 58. It hosts the Festival 58 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 58 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 58"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "58-c",
+    "title": "passage_58",
+    "context": "City 58 is situated along the River 58. It hosts the Festival 58 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 58?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "59-a",
+    "title": "passage_59",
+    "context": "City 59 is situated along the River 59. It hosts the Festival 59 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 59?",
+    "answers": {
+      "text": [
+        "River 59"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "59-b",
+    "title": "passage_59",
+    "context": "City 59 is situated along the River 59. It hosts the Festival 59 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 59 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 59"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "59-c",
+    "title": "passage_59",
+    "context": "City 59 is situated along the River 59. It hosts the Festival 59 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 59?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "60-a",
+    "title": "passage_60",
+    "context": "City 60 is situated along the River 60. It hosts the Festival 60 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 60?",
+    "answers": {
+      "text": [
+        "River 60"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "60-b",
+    "title": "passage_60",
+    "context": "City 60 is situated along the River 60. It hosts the Festival 60 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 60 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 60"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "60-c",
+    "title": "passage_60",
+    "context": "City 60 is situated along the River 60. It hosts the Festival 60 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 60?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "60-unans",
+    "title": "passage_60",
+    "context": "City 60 is situated along the River 60. It hosts the Festival 60 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which Nobel prize winner grew up in City 60?",
+    "answers": {
+      "text": []
+    },
+    "is_impossible": true
+  },
+  {
+    "id": "61-a",
+    "title": "passage_61",
+    "context": "City 61 is situated along the River 61. It hosts the Festival 61 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 61?",
+    "answers": {
+      "text": [
+        "River 61"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "61-b",
+    "title": "passage_61",
+    "context": "City 61 is situated along the River 61. It hosts the Festival 61 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 61 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 61"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "61-c",
+    "title": "passage_61",
+    "context": "City 61 is situated along the River 61. It hosts the Festival 61 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 61?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "62-a",
+    "title": "passage_62",
+    "context": "City 62 is situated along the River 62. It hosts the Festival 62 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 62?",
+    "answers": {
+      "text": [
+        "River 62"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "62-b",
+    "title": "passage_62",
+    "context": "City 62 is situated along the River 62. It hosts the Festival 62 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 62 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 62"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "62-c",
+    "title": "passage_62",
+    "context": "City 62 is situated along the River 62. It hosts the Festival 62 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 62?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "63-a",
+    "title": "passage_63",
+    "context": "City 63 is situated along the River 63. It hosts the Festival 63 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 63?",
+    "answers": {
+      "text": [
+        "River 63"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "63-b",
+    "title": "passage_63",
+    "context": "City 63 is situated along the River 63. It hosts the Festival 63 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 63 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 63"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "63-c",
+    "title": "passage_63",
+    "context": "City 63 is situated along the River 63. It hosts the Festival 63 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 63?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "64-a",
+    "title": "passage_64",
+    "context": "City 64 is situated along the River 64. It hosts the Festival 64 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 64?",
+    "answers": {
+      "text": [
+        "River 64"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "64-b",
+    "title": "passage_64",
+    "context": "City 64 is situated along the River 64. It hosts the Festival 64 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 64 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 64"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "64-c",
+    "title": "passage_64",
+    "context": "City 64 is situated along the River 64. It hosts the Festival 64 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 64?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "65-a",
+    "title": "passage_65",
+    "context": "City 65 is situated along the River 65. It hosts the Festival 65 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 65?",
+    "answers": {
+      "text": [
+        "River 65"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "65-b",
+    "title": "passage_65",
+    "context": "City 65 is situated along the River 65. It hosts the Festival 65 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 65 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 65"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "65-c",
+    "title": "passage_65",
+    "context": "City 65 is situated along the River 65. It hosts the Festival 65 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 65?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "66-a",
+    "title": "passage_66",
+    "context": "City 66 is situated along the River 66. It hosts the Festival 66 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 66?",
+    "answers": {
+      "text": [
+        "River 66"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "66-b",
+    "title": "passage_66",
+    "context": "City 66 is situated along the River 66. It hosts the Festival 66 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 66 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 66"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "66-c",
+    "title": "passage_66",
+    "context": "City 66 is situated along the River 66. It hosts the Festival 66 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 66?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "67-a",
+    "title": "passage_67",
+    "context": "City 67 is situated along the River 67. It hosts the Festival 67 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 67?",
+    "answers": {
+      "text": [
+        "River 67"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "67-b",
+    "title": "passage_67",
+    "context": "City 67 is situated along the River 67. It hosts the Festival 67 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 67 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 67"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "67-c",
+    "title": "passage_67",
+    "context": "City 67 is situated along the River 67. It hosts the Festival 67 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 67?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "68-a",
+    "title": "passage_68",
+    "context": "City 68 is situated along the River 68. It hosts the Festival 68 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 68?",
+    "answers": {
+      "text": [
+        "River 68"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "68-b",
+    "title": "passage_68",
+    "context": "City 68 is situated along the River 68. It hosts the Festival 68 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 68 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 68"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "68-c",
+    "title": "passage_68",
+    "context": "City 68 is situated along the River 68. It hosts the Festival 68 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 68?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "69-a",
+    "title": "passage_69",
+    "context": "City 69 is situated along the River 69. It hosts the Festival 69 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 69?",
+    "answers": {
+      "text": [
+        "River 69"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "69-b",
+    "title": "passage_69",
+    "context": "City 69 is situated along the River 69. It hosts the Festival 69 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 69 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 69"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "69-c",
+    "title": "passage_69",
+    "context": "City 69 is situated along the River 69. It hosts the Festival 69 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 69?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "70-a",
+    "title": "passage_70",
+    "context": "City 70 is situated along the River 70. It hosts the Festival 70 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which river runs through City 70?",
+    "answers": {
+      "text": [
+        "River 70"
+      ],
+      "answer_start": [
+        30
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "70-b",
+    "title": "passage_70",
+    "context": "City 70 is situated along the River 70. It hosts the Festival 70 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What annual event does City 70 host in summer?",
+    "answers": {
+      "text": [
+        "Festival 70"
+      ],
+      "answer_start": [
+        53
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "70-c",
+    "title": "passage_70",
+    "context": "City 70 is situated along the River 70. It hosts the Festival 70 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "What do residents enjoy each week in City 70?",
+    "answers": {
+      "text": [
+        "markets"
+      ],
+      "answer_start": [
+        149
+      ]
+    },
+    "is_impossible": false
+  },
+  {
+    "id": "70-unans",
+    "title": "passage_70",
+    "context": "City 70 is situated along the River 70. It hosts the Festival 70 every summer and has a vibrant tech hub. Residents enjoy parks, museums, and weekly markets.",
+    "question": "Which Nobel prize winner grew up in City 70?",
+    "answers": {
+      "text": []
+    },
+    "is_impossible": true
   }
 ]

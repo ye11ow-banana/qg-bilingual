@@ -2,6 +2,7 @@ import argparse
 import json
 import random
 import re
+import unicodedata
 from collections import Counter
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
@@ -24,37 +25,44 @@ APOSTROPHE_MAP = {
 
 
 def normalize_text(text: str) -> str:
-    text = text.replace("\u00a0", " ")
+    text = unicodedata.normalize("NFKC", text.replace("\u00a0", " "))
     for src, dst in QUOTE_MAP.items():
         text = text.replace(src, dst)
     for src, dst in APOSTROPHE_MAP.items():
         text = text.replace(src, dst)
     text = re.sub(r"\s+", " ", text)
-    text = re.sub(r"\s*([,.;:!?])\s*", r" \1 ", text)
-    text = re.sub(r"\s+/\s+", "/", text)
-    text = re.sub(r"\s+-\s+", "-", text)
+    text = re.sub(r"\s+([,.;:!?])", r"\1", text)
+    text = re.sub(r"([,.;:!?])(?!\s|$)", r"\1 ", text)
+    text = re.sub(r"\s*/\s*", "/", text)
+    text = re.sub(r"\s*-\s*", "-", text)
     text = re.sub(r"\s+", " ", text)
     return text.strip()
 
 
 def translate_en_to_ua(text: str) -> str:
-    # Placeholder stub – replace with a real translation model later.
+    """Placeholder stub – replace with a real translation model later."""
     return text
 
 
 def align_answer(context: str, answer: str) -> Optional[str]:
     if not answer:
         return ""
-    if answer in context:
-        return answer
-    candidates = [answer.strip(), answer.strip().strip(".?!,;:"), answer.replace("’", "'"), answer.replace("'", "’")]
+
+    context_norm = normalize_text(context)
+    answer_norm = normalize_text(answer)
+    if answer_norm in context_norm:
+        return answer_norm
+
+    candidates = [
+        answer_norm.strip(),
+        answer_norm.strip().strip(".?!,;:"),
+        answer_norm.replace("’", "'"),
+        answer_norm.replace("'", "’"),
+    ]
     for cand in candidates:
         cand_norm = normalize_text(cand)
-        if cand_norm in context:
+        if cand_norm in context_norm:
             return cand_norm
-    simplified_context = normalize_text(context)
-    if normalize_text(answer) in simplified_context:
-        return normalize_text(answer)
     return None
 
 
@@ -106,12 +114,15 @@ def compute_stats(records: Dict[str, List[Dict]]) -> Dict:
     return stats
 
 
-def process_split(rows: List[Dict], args, rng: random.Random, dropped: Counter) -> List[Dict]:
+def process_split(
+    rows: List[Dict], args, rng: random.Random, dropped: Counter, drop_records: List[Dict]
+) -> List[Dict]:
     result = []
     dedup = set()
     for row in rows:
         if args.drop_unanswerable and row.get("unanswerable", False):
             dropped["unanswerable_dropped"] += 1
+            drop_records.append({"reason": "unanswerable_dropped", "title": row.get("title", "")})
             continue
 
         context_en = row["context"]
@@ -126,23 +137,28 @@ def process_split(rows: List[Dict], args, rng: random.Random, dropped: Counter) 
         if not unanswerable:
             aligned = align_answer(context, answer)
             if aligned is None:
-                dropped["answer_not_in_context"] += 1
+                dropped["span_misaligned"] += 1
+                drop_records.append({"reason": "span_misaligned", "title": row.get("title", "")})
                 continue
             answer = aligned
 
         if not length_ok(context, args.min_context, args.max_context):
-            dropped["context_length"] += 1
+            dropped["len_filter"] += 1
+            drop_records.append({"reason": "len_filter", "field": "context", "title": row.get("title", "")})
             continue
         if not length_ok(question, args.min_question, args.max_question):
-            dropped["question_length"] += 1
+            dropped["len_filter"] += 1
+            drop_records.append({"reason": "len_filter", "field": "question", "title": row.get("title", "")})
             continue
         if not unanswerable and not length_ok(answer, args.min_answer, args.max_answer):
-            dropped["answer_length"] += 1
+            dropped["len_filter"] += 1
+            drop_records.append({"reason": "len_filter", "field": "answer", "title": row.get("title", "")})
             continue
 
         key = (context, question)
         if key in dedup:
             dropped["duplicate"] += 1
+            drop_records.append({"reason": "duplicate", "title": row.get("title", "")})
             continue
         dedup.add(key)
 
@@ -190,6 +206,7 @@ def main():
 
     splits: Dict[str, List[Dict]] = {}
     dropped = Counter()
+    drop_records: List[Dict] = []
 
     for split_name, limit in [("train", args.train_limit), ("val", args.val_limit), ("test", args.test_limit)]:
         src_path = args.in_dir / f"{split_name}.jsonl"
@@ -200,7 +217,7 @@ def main():
         rng.shuffle(rows)
         if limit:
             rows = rows[:limit]
-        processed = process_split(rows, args, rng, dropped)
+        processed = process_split(rows, args, rng, dropped, drop_records)
         splits[split_name] = processed
         save_jsonl(args.out_dir / f"{split_name}.jsonl", processed)
 
@@ -209,8 +226,9 @@ def main():
     args.stats.write_text(json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
 
     with dropped_log.open("w", encoding="utf-8") as f:
-        for reason, count in dropped.items():
-            f.write(json.dumps({"reason": reason, "count": count}) + "\n")
+        for rec in drop_records:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        f.write(json.dumps({"summary": dropped}, ensure_ascii=False) + "\n")
 
 
 if __name__ == "__main__":
