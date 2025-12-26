@@ -1,0 +1,16 @@
+lang: ua
+qa_model: xlm-roberta-base-squad2
+device: auto
+batch_size: 16
+max_context_tokens: 512
+thresholds:
+  f1_pass: 0.8
+  conf_pass: 0.35
+normalization:
+  strip_punct: true
+  lower: true
+  unify_quotes: true
+  unify_apostrophe: true
+io:
+  input_jsonl: runs/t5_base_aware_ua/samples_val.jsonl
+  out_dir: runs/t5_base_aware_ua/

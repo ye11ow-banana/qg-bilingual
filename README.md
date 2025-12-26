@@ -16,21 +16,42 @@ Run the answer-aware question generation training loop with the provided YAML co
 uv run python -m qg_bilingual.train --config configs/train_t5_base.yaml
 ```
 
-Evaluation uses a QA model for EM/F1/pass-rate. Configure language-aware QA in
-the `qg2qa` block:
+Evaluation now runs as a standalone QG→QA pass (batched extractive QA over
+`context + generated question`). Configure it via dedicated YAMLs
+(`configs/qg2qa_en.yaml`, `configs/qg2qa_ua.yaml`):
 
 ```yaml
-qg2qa:
-  qa_ckpt_en: "distilbert-base-uncased-distilled-squad"
-  qa_ckpt_multi: "deepset/xlm-roberta-large-squad2"
-  lang: "en"   # en|ua|auto
-  f1_thr: 0.8
-  conf_thr: 0.35
-  device: "auto"  # cuda|cpu|auto
+lang: ua                  # en|ua
+qa_model: xlm-roberta-base-squad2
+device: auto              # cuda|cpu|auto
+batch_size: 16
+max_context_tokens: 512   # context gets truncated to this size
+thresholds:
+  f1_pass: 0.80           # pass-rate requires >= this F1
+  conf_pass: 0.35         # and >= this span confidence
+normalization:
+  strip_punct: true
+  lower: true
+  unify_quotes: true
+  unify_apostrophe: true
+io:
+  input_jsonl: runs/t5_base_aware_ua/samples_val.jsonl
+  out_dir: runs/t5_base_aware_ua/
 ```
 
-For Ukrainian validation, set `lang: "ua"` to pick the multilingual QA model;
-using the EN checkpoint for UA will under-report EM/F1.
+Run the scorer:
+
+```bash
+uv run python -m qg_bilingual.eval.qg2qa --config configs/qg2qa_en.yaml --input runs/t5_base_aware_en/samples_val.jsonl --out runs/t5_base_aware_en/
+```
+
+- `qg2qa_val.json` stores aggregates (EM/F1/pass-rate, buckets by question
+  length and wh-type, F1 histogram).
+- `qg2qa_details.jsonl` stores row-level predictions with confidence and
+  pass flags.
+- `--include-unanswerable` keeps `unanswerable=true` rows in metrics; by
+  default they are counted in `counts` but excluded from EM/F1/pass-rate unless
+  the QA model returns an empty span with confidence ≥ `conf_pass`.
 
 Each JSONL row should look like:
 

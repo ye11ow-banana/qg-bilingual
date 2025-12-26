@@ -3,7 +3,7 @@
 ## Policies
 
 - **Normalization:** Both EN and UA pipelines normalize with NFKC, convert quotes to `"`, apostrophes to `’`, squeeze whitespace, remove spaces before punctuation, and trim.
-- **Unanswerable handling:** By default unanswerable rows are kept as `answer=""`, `unanswerable=true`. Passing `--drop-unanswerable` removes them and logs `reason=unanswerable` to `data/prep_logs/en_dropped.jsonl` or `ua_dropped.jsonl`.
+- **Unanswerable handling:** By default unanswerable rows are kept as `answer=""`, `unanswerable=true`. Passing `--drop-unanswerable` removes them and logs `reason=unanswerable` to `data/prep_logs/en_dropped.jsonl` or `ua_dropped.jsonl`. Downstream QG→QA scoring excludes them from EM/F1/pass-rate unless `--include-unanswerable` is set (then only empty/no-answer spans with confidence ≥ `conf_pass` count as correct).
 - **Stratification:** Splits are paragraph-stratified: all QAs from the same `(title, paragraph_index)` stay in one split. Fractions must sum to ~1.0; non-empty splits are enforced.
 - **Duplicates:** Deduplication uses a stable hash of normalized `(context, question)` per language. Any dropped duplicates are recorded with `reason=duplicate`.
 - **Length controls:** CLI flags `--min/max-{context,question,answer}` guard against short/long fields and log `reason=len_filter` when triggered.
