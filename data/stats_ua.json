@@ -1,8 +1,8 @@
 {
   "counts": {
-    "train": 175,
-    "val": 21,
-    "test": 21
+    "train": 3,
+    "val": 3,
+    "test": 204
   },
   "avg_len": {
     "context": {
@@ -11,12 +11,12 @@
       "test": 28.0
     },
     "question": {
-      "train": 8.04,
+      "train": 8.0,
       "val": 8.0,
       "test": 8.0
     },
     "answer": {
-      "train": 1.6,
+      "train": 1.6666666666666667,
       "val": 1.6666666666666667,
       "test": 1.6666666666666667
     }
@@ -25,21 +25,21 @@
     "context": {
       "train": 28,
       "val": 28,
-      "test": 28
+      "test": 28.0
     },
     "question": {
       "train": 9,
       "val": 9,
-      "test": 9
+      "test": 9.0
     },
     "answer": {
       "train": 2,
       "val": 2,
-      "test": 2
+      "test": 2.0
     }
   },
   "unanswerable_share": {
-    "train": 0.04,
+    "train": 0.0,
     "val": 0.0,
     "test": 0.0
   }

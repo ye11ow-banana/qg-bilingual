@@ -74,7 +74,9 @@ After validation, `models/.../metrics_val.json` contains combined text and QG→
 ```
 
 ## Data preparation
-- English split generation: `uv run python data/scripts/prepare_en.py --out-dir data/artifacts/en --stats data/stats_en.json --seed 42`
-- Ukrainian projection: `uv run python data/scripts/prepare_ua.py --in-dir data/artifacts/en --out-dir data/artifacts/ua --stats data/stats_ua.json --seed 42`
+- English split generation: `uv run python data/scripts/prepare_en.py --out-dir data/artifacts/en --stats data/stats_en.json --seed 42 --stratify-by title --train-frac 0.02 --val-frac 0.01 --test-frac 0.97`
+- Ukrainian projection: `uv run python data/scripts/prepare_ua.py --in-dir data/artifacts/en --out-dir data/artifacts/ua --stats data/stats_ua.json --seed 42 --stratify-by title`
 
-Both pipelines normalize text (NFKC + unified quotes/apostrophes + clean punctuation spacing), deduplicate by `(context, question)`, enforce length limits, and keep paragraph-level grouping together during the 80/10/10 splits. Unanswerable items are **kept by default** with `answer=""` and `unanswerable=true`; pass `--drop-unanswerable` to remove them early. Ukrainian data currently reuses English text via a `translate_en_to_ua` stub until a real translation model is plugged in.
+Both pipelines normalize text (NFKC + unified quotes/apostrophes + clean punctuation spacing), deduplicate by `(context, question)`, enforce length limits, and keep grouping coherent during stratified splits (paragraph-level by default, overridable via `--stratify-by title`). Unanswerable items are **kept by default** with `answer=""` and `unanswerable=true`; pass `--drop-unanswerable` to remove them early and log the reason (stats and QA metrics treat `unanswerable=true` + empty answer consistently). English splitting accepts custom train/val/test fractions **that must sum to 1.0**; the script will refuse setups that would yield empty non-zero splits once paragraphs/titles are grouped. Ukrainian subsampling can follow the same title-aware order when limiting rows. Ukrainian data currently reuses English text via a `translate_en_to_ua` stub until a real translation model is plugged in.
+
+See [docs/data.md](docs/data.md) for a concise checklist covering normalization, unanswerable policy, stratification, and determinism.

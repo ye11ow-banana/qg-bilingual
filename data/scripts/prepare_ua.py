@@ -31,8 +31,7 @@ def normalize_text(text: str) -> str:
     for src, dst in APOSTROPHE_MAP.items():
         text = text.replace(src, dst)
     text = re.sub(r"\s+", " ", text)
-    text = re.sub(r"\s+([,.;:!?])", r"\1", text)
-    text = re.sub(r"([,.;:!?])(?!\s|$)", r"\1 ", text)
+    text = re.sub(r"\s*([,.;:!?])\s*", r"\1 ", text)
     text = re.sub(r"\s*/\s*", "/", text)
     text = re.sub(r"\s*-\s*", "-", text)
     text = re.sub(r"\s+", " ", text)
@@ -189,6 +188,12 @@ def parse_args():
     parser.add_argument("--train-limit", type=int, default=20000)
     parser.add_argument("--val-limit", type=int, default=1000)
     parser.add_argument("--test-limit", type=int, default=1000)
+    parser.add_argument(
+        "--stratify-by",
+        choices=["none", "title"],
+        default="none",
+        help="Optionally stratify UA subsampling by title to preserve article grouping.",
+    )
     unans_group = parser.add_mutually_exclusive_group()
     unans_group.add_argument("--keep-unanswerable", dest="drop_unanswerable", action="store_false")
     unans_group.add_argument("--drop-unanswerable", dest="drop_unanswerable", action="store_true")
@@ -214,9 +219,23 @@ def main():
         with src_path.open("r", encoding="utf-8") as f:
             for line in f:
                 rows.append(json.loads(line))
-        rng.shuffle(rows)
+
+        if args.stratify_by == "title":
+            grouped = {}
+            for row in rows:
+                grouped.setdefault(row.get("title", "<unknown-title>"), []).append(row)
+            group_keys = list(grouped.keys())
+            rng.shuffle(group_keys)
+            ordered_rows: List[Dict] = []
+            for key in group_keys:
+                ordered_rows.extend(grouped[key])
+            rows = ordered_rows
+        else:
+            rng.shuffle(rows)
+
         if limit:
             rows = rows[:limit]
+
         processed = process_split(rows, args, rng, dropped, drop_records)
         splits[split_name] = processed
         save_jsonl(args.out_dir / f"{split_name}.jsonl", processed)

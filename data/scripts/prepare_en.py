@@ -1,6 +1,7 @@
 import argparse
 import hashlib
 import json
+import math
 import random
 import re
 import sys
@@ -38,8 +39,7 @@ def normalize_text(text: str) -> str:
 
     # tighten spaces around punctuation and slashes
     text = re.sub(r"\s+", " ", text)
-    text = re.sub(r"\s+([,.;:!?])", r"\1", text)
-    text = re.sub(r"([,.;:!?])(?!\s|$)", r"\1 ", text)
+    text = re.sub(r"\s*([,.;:!?])\s*", r"\1 ", text)
     text = re.sub(r"\s*/\s*", "/", text)
     text = re.sub(r"\s*-\s*", "-", text)
     text = re.sub(r"\s+", " ", text)
@@ -116,7 +116,17 @@ def save_jsonl(path: Path, rows: Iterable[Dict]):
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
-def stratified_group_split(groups: Dict[str, List[Dict]], seed: int) -> Dict[str, List[Dict]]:
+def stratified_group_split(
+    groups: Dict[str, List[Dict]], seed: int, train_frac: float, val_frac: float, test_frac: float
+) -> Dict[str, List[Dict]]:
+    fracs = [train_frac, val_frac, test_frac]
+    total = sum(fracs)
+    if total <= 0:
+        fracs = [0.8, 0.1, 0.1]
+        total = 1.0
+    if not math.isclose(total, 1.0, rel_tol=1e-6, abs_tol=1e-3):
+        raise ValueError("train/val/test fractions must sum to 1.0 (within 1e-3 tolerance)")
+
     group_keys = list(groups.keys())
     rnd = random.Random(seed)
     rnd.shuffle(group_keys)
@@ -125,18 +135,35 @@ def stratified_group_split(groups: Dict[str, List[Dict]], seed: int) -> Dict[str
     if total_groups == 0:
         return {"train": [], "val": [], "test": []}
 
-    # Allocate per-group to preserve paragraph integrity and avoid empty splits
-    train_groups = max(1, int(round(total_groups * 0.8))) if total_groups >= 2 else total_groups
-    val_groups = max(1, int(round(total_groups * 0.1))) if total_groups >= 3 else (1 if total_groups == 2 else 0)
-    if train_groups + val_groups > total_groups:
-        val_groups = max(0, total_groups - train_groups)
-    test_groups = max(0, total_groups - train_groups - val_groups)
+    positive_splits = [idx for idx, frac in enumerate(fracs) if frac > 0]
+    if total_groups < len(positive_splits):
+        raise ValueError("Not enough groups to allocate at least one per requested split")
+
+    raw_counts = [frac * total_groups for frac in fracs]
+    counts = [int(x) for x in raw_counts]
+    remainders = [x - int(x) for x in raw_counts]
+    leftover = total_groups - sum(counts)
+
+    while leftover > 0:
+        idx = max(range(3), key=lambda i: remainders[i])
+        counts[idx] += 1
+        remainders[idx] = 0.0
+        leftover -= 1
+
+    for idx in positive_splits:
+        if counts[idx] == 0:
+            donor = max((j for j in range(3) if counts[j] > 1), key=lambda j: counts[j], default=None)
+            if donor is None:
+                raise ValueError("Unable to ensure non-empty split for requested fractions")
+            counts[donor] -= 1
+            counts[idx] += 1
 
     splits = {"train": [], "val": [], "test": []}
+    boundaries = [counts[0], counts[0] + counts[1]]
     for idx, key in enumerate(group_keys):
-        if idx < train_groups:
+        if idx < boundaries[0]:
             split = "train"
-        elif idx < train_groups + val_groups:
+        elif idx < boundaries[1]:
             split = "val"
         else:
             split = "test"
@@ -161,6 +188,9 @@ def load_squad_rows(args) -> List[Dict]:
 
 
 def process_dataset(args) -> Tuple[Dict[str, List[Dict]], Counter, List[Dict]]:
+    if any(frac < 0 for frac in (args.train_frac, args.val_frac, args.test_frac)):
+        raise ValueError("train/val/test fractions must be non-negative")
+
     all_rows = load_squad_rows(args)
 
     dedup = set()
@@ -213,7 +243,10 @@ def process_dataset(args) -> Tuple[Dict[str, List[Dict]], Counter, List[Dict]]:
         dedup.add(key)
 
         group_hash = hashlib.md5(context.encode("utf-8")).hexdigest()
-        group_id = f"{title}::{group_hash}"
+        if args.stratify_by == "title":
+            group_id = title or "<unknown-title>"
+        else:
+            group_id = f"{title}::{group_hash}"
         grouped[group_id].append(
             {
                 "context": context,
@@ -224,7 +257,9 @@ def process_dataset(args) -> Tuple[Dict[str, List[Dict]], Counter, List[Dict]]:
             }
         )
 
-    splits = stratified_group_split(grouped, args.seed)
+    splits = stratified_group_split(
+        grouped, args.seed, args.train_frac, args.val_frac, args.test_frac
+    )
     return splits, dropped, drop_records
 
 
@@ -245,10 +280,19 @@ def parse_args():
     parser.add_argument("--max-question", type=int, default=40)
     parser.add_argument("--min-answer", type=int, default=1)
     parser.add_argument("--max-answer", type=int, default=15)
+    parser.add_argument(
+        "--stratify-by",
+        choices=["paragraph", "title"],
+        default="paragraph",
+        help="Stratify splits by paragraph (context hash) or by article title.",
+    )
     unans_group = parser.add_mutually_exclusive_group()
     unans_group.add_argument("--keep-unanswerable", dest="drop_unanswerable", action="store_false")
     unans_group.add_argument("--drop-unanswerable", dest="drop_unanswerable", action="store_true")
     parser.set_defaults(drop_unanswerable=False)
+    parser.add_argument("--train-frac", type=float, default=0.8)
+    parser.add_argument("--val-frac", type=float, default=0.1)
+    parser.add_argument("--test-frac", type=float, default=0.1)
     return parser.parse_args()
 
 
