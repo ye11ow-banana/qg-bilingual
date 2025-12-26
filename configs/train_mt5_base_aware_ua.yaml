@@ -1,0 +1,39 @@
+model: google/mt5-base
+task:
+  mode: aware
+  lang: ua
+data:
+  train_path: data/artifacts/ua/train.jsonl
+  val_path: data/artifacts/ua/val.jsonl
+train:
+  lr: 3e-5
+  weight_decay: 0.01
+  epochs: 6
+  batch_per_device: 8
+  grad_accum: 4
+  max_input_len: 512
+  max_target_len: 48
+  label_smoothing: 0.1
+  dropout: 0.1
+  warmup_ratio: 0.05
+  early_stopping_patience: 3
+peft:
+  lora: true
+  r: 8
+  alpha: 16
+  target_modules: [q, v, o, wi_0, wi_1]
+  dropout: 0.1
+amp:
+  precision: bf16
+decoding:
+  strategy: beam
+  num_beams: 6
+  length_penalty: 1.1
+  no_repeat_ngram_size: 3
+eval:
+  compute: [rouge, bleu]
+  save_metrics_to: runs/mt5_base_aware_ua/metrics_val.json
+  samples_path: runs/mt5_base_aware_ua/samples_val.jsonl
+  qg2qa_save_to: runs/mt5_base_aware_ua/qg2qa_val.json
+qg2qa:
+  lang: ua

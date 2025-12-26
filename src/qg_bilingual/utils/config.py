@@ -2,9 +2,70 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 import yaml
+
+
+@dataclass
+class TaskConfig:
+    mode: str
+    lang: str
+
+
+@dataclass
+class DataConfig:
+    train_path: Path
+    val_path: Path
+
+
+@dataclass
+class TrainSettings:
+    lr: float = 3e-5
+    weight_decay: float = 0.01
+    epochs: int = 3
+    batch_per_device: int = 8
+    grad_accum: int = 1
+    max_input_len: int = 512
+    max_target_len: int = 48
+    label_smoothing: float = 0.0
+    dropout: float = 0.1
+    warmup_ratio: float = 0.05
+    eval_every_steps: Optional[int] = None
+    early_stopping_patience: int = 3
+    seed: int = 42
+
+
+@dataclass
+class PeftConfig:
+    lora: bool = False
+    r: int = 8
+    alpha: int = 16
+    target_modules: List[str] = field(default_factory=list)
+    dropout: float = 0.05
+
+
+@dataclass
+class AmpConfig:
+    precision: str = "no"  # one of ["fp16", "bf16", "no"]
+
+
+@dataclass
+class DecodingConfig:
+    strategy: str = "beam"  # beam or top_p
+    num_beams: int = 6
+    length_penalty: float = 1.0
+    no_repeat_ngram_size: int = 3
+    top_p: float = 0.9
+    temperature: float = 1.0
+
+
+@dataclass
+class EvalConfig:
+    compute: List[str] = field(default_factory=lambda: ["rouge", "bleu"])
+    save_metrics_to: Path = Path("runs/experiment/metrics_val.json")
+    samples_path: Optional[Path] = None
+    qg2qa_save_to: Optional[Path] = None
 
 
 @dataclass
@@ -20,55 +81,55 @@ class QG2QAConfig:
 
 @dataclass
 class TrainConfig:
-    model_name: str
-    task: str
-    train_file: Path
-    val_file: Path
-    text_field: str
-    answer_field: str
-    target_field: str
-    max_input_len: int
-    max_target_len: int
-    per_device_train_batch_size: int
-    per_device_eval_batch_size: int
-    lr: float
-    num_train_epochs: int
-    warmup_ratio: float
-    lora: bool
-    lora_r: int
-    fp16: bool
-    eval_every_steps: int
-    output_dir: Path
-    seed: int = 42
-    gradient_accumulation_steps: int = 1
+    model: str
+    task: TaskConfig
+    data: DataConfig
+    train: TrainSettings
+    peft: PeftConfig
+    amp: AmpConfig
+    decoding: DecodingConfig
+    eval: EvalConfig
     qg2qa: QG2QAConfig = field(default_factory=QG2QAConfig)
+    output_dir: Path = Path("runs/experiment")
+    config_path: Optional[Path] = None
 
     @classmethod
     def from_yaml(cls, path: Path) -> "TrainConfig":
         raw = _load_yaml(path)
+        task = TaskConfig(**raw.get("task", {}))
+        data = DataConfig(
+            train_path=Path(raw["data"]["train_path"]),
+            val_path=Path(raw["data"]["val_path"]),
+        )
+        train_settings = TrainSettings(**raw.get("train", {}))
+        peft = PeftConfig(**raw.get("peft", {}))
+        amp = AmpConfig(**raw.get("amp", {}))
+        decoding = DecodingConfig(**raw.get("decoding", {}))
+        eval_raw = raw.get("eval", {})
+        eval_cfg = EvalConfig(
+            compute=eval_raw.get("compute", ["rouge", "bleu"]),
+            save_metrics_to=Path(
+                eval_raw.get("save_metrics_to", "runs/experiment/metrics_val.json")
+            ),
+            samples_path=Path(eval_raw["samples_path"]) if eval_raw.get("samples_path") else None,
+            qg2qa_save_to=Path(eval_raw["qg2qa_save_to"]) if eval_raw.get("qg2qa_save_to") else None,
+        )
+        qg2qa_cfg = _load_qg2qa_config(raw.get("qg2qa", {}))
+
+        output_dir = Path(raw.get("output_dir") or eval_cfg.save_metrics_to).parent
+
         return cls(
-            model_name=str(raw["model_name"]),
-            task=str(raw["task"]),
-            train_file=Path(raw["train_file"]),
-            val_file=Path(raw["val_file"]),
-            text_field=str(raw["text_field"]),
-            answer_field=str(raw["answer_field"]),
-            target_field=str(raw["target_field"]),
-            max_input_len=int(raw["max_input_len"]),
-            max_target_len=int(raw["max_target_len"]),
-            per_device_train_batch_size=int(raw["per_device_train_batch_size"]),
-            per_device_eval_batch_size=int(raw["per_device_eval_batch_size"]),
-            lr=float(raw["lr"]),
-            num_train_epochs=int(raw["num_train_epochs"]),
-            warmup_ratio=float(raw["warmup_ratio"]),
-            lora=bool(raw.get("lora", False)),
-            lora_r=int(raw.get("lora_r", 8)),
-            fp16=bool(raw.get("fp16", False)),
-            eval_every_steps=int(raw.get("eval_every_steps", 500)),
-            output_dir=Path(raw.get("output_dir", "outputs/train_run")),
-            seed=int(raw.get("seed", 42)),
-            gradient_accumulation_steps=int(raw.get("gradient_accumulation_steps", 1)),
-            qg2qa=_load_qg2qa_config(raw.get("qg2qa", {})),
+            model=str(raw["model"]),
+            task=task,
+            data=data,
+            train=train_settings,
+            peft=peft,
+            amp=amp,
+            decoding=decoding,
+            eval=eval_cfg,
+            qg2qa=qg2qa_cfg,
+            output_dir=output_dir,
+            config_path=path,
         )
 
 
