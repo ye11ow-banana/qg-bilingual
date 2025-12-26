@@ -4,8 +4,11 @@ import argparse
 import json
 import logging
 import math
+import subprocess
+from collections import Counter
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, Sequence, Tuple
+from typing import Dict, List, Sequence, Tuple
 
 import torch
 from accelerate import Accelerator
@@ -21,71 +24,85 @@ from transformers import (
     get_linear_schedule_with_warmup,
     set_seed,
 )
+from transformers.trainer_pt_utils import LabelSmoother
 
-from qg_bilingual.io.jsonl_dataset import QGJsonlDataset, load_jsonl
 from qg_bilingual.eval.qg2qa import qg2qa_metrics
+from qg_bilingual.io.jsonl_dataset import QGJsonlDataset, load_jsonl
 from qg_bilingual.utils.config import TrainConfig
 
 LOGGER = logging.getLogger(__name__)
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Train T5-base for answer-aware QG")
-    parser.add_argument(
-        "--config", type=Path, required=True, help="Path to YAML config file"
-    )
+    parser = argparse.ArgumentParser(description="Universal trainer for QG models")
+    parser.add_argument("--config", type=Path, required=True, help="Path to YAML config")
     return parser.parse_args()
 
 
+def _resolve_git_hash() -> str:
+    try:
+        output = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=Path(__file__).parent)
+        return output.decode().strip()
+    except Exception:  # pragma: no cover - defensive
+        return "unknown"
+
+
 def build_model(cfg: TrainConfig, tokenizer) -> AutoModelForSeq2SeqLM:
-    model = AutoModelForSeq2SeqLM.from_pretrained(cfg.model_name)
-    if cfg.lora:
+    model = AutoModelForSeq2SeqLM.from_pretrained(cfg.model)
+    model.config.dropout = cfg.train.dropout
+    if hasattr(model.config, "attention_dropout"):
+        model.config.attention_dropout = cfg.train.dropout
+
+    if cfg.peft.lora:
         lora_config = LoraConfig(
             task_type=TaskType.SEQ_2_SEQ_LM,
-            r=cfg.lora_r,
-            lora_alpha=2 * cfg.lora_r,
-            lora_dropout=0.05,
+            r=cfg.peft.r,
+            lora_alpha=cfg.peft.alpha,
+            lora_dropout=cfg.peft.dropout,
+            target_modules=cfg.peft.target_modules or None,
         )
         model = get_peft_model(model, lora_config)
-        LOGGER.info("LoRA enabled (r=%s)", cfg.lora_r)
+        LOGGER.info("LoRA enabled (r=%s, alpha=%s)", cfg.peft.r, cfg.peft.alpha)
+
     model.resize_token_embeddings(len(tokenizer))
     return model
 
 
-def prepare_dataloaders(
-    cfg: TrainConfig,
-    tokenizer,
-) -> Tuple[DataLoader, DataLoader, Sequence, Sequence]:
-    train_records = load_jsonl(cfg.train_file)
-    val_records = load_jsonl(cfg.val_file)
+def prepare_dataloaders(cfg: TrainConfig, tokenizer) -> Tuple[DataLoader, DataLoader, Sequence, Sequence]:
+    train_records = load_jsonl(cfg.data.train_path)
+    val_records = load_jsonl(cfg.data.val_path)
 
     generator = torch.Generator()
-    generator.manual_seed(cfg.seed)
+    generator.manual_seed(cfg.train.seed)
 
     train_dataset = QGJsonlDataset(
         train_records,
         tokenizer,
-        max_input_len=cfg.max_input_len,
-        max_target_len=cfg.max_target_len,
+        max_input_len=cfg.train.max_input_len,
+        max_target_len=cfg.train.max_target_len,
+        mode=cfg.task.mode,
+        lang=cfg.task.lang,
     )
     val_dataset = QGJsonlDataset(
         val_records,
         tokenizer,
-        max_input_len=cfg.max_input_len,
-        max_target_len=cfg.max_target_len,
+        max_input_len=cfg.train.max_input_len,
+        max_target_len=cfg.train.max_target_len,
+        mode=cfg.task.mode,
+        lang=cfg.task.lang,
     )
 
     collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=None)
     train_loader = DataLoader(
         train_dataset,
-        batch_size=cfg.per_device_train_batch_size,
+        batch_size=cfg.train.batch_per_device,
         shuffle=True,
         collate_fn=collator,
         generator=generator,
     )
     val_loader = DataLoader(
         val_dataset,
-        batch_size=cfg.per_device_eval_batch_size,
+        batch_size=cfg.train.batch_per_device,
         shuffle=False,
         collate_fn=collator,
         generator=generator,
@@ -107,8 +124,18 @@ def compute_metrics(
     )
     return {
         "rouge1": rouge_scores["rouge1"].mid.fmeasure,
+        "rouge2": rouge_scores["rouge2"].mid.fmeasure,
         "rougeL": rouge_scores["rougeL"].mid.fmeasure,
         "bleu": bleu_scores.get("score", 0.0),
+    }
+
+
+def _question_stats(predictions: Sequence[str]) -> Dict[str, object]:
+    lengths = [len(p.split()) for p in predictions if p.strip()]
+    first_tokens = [p.strip().split()[0].lower() for p in predictions if p.strip()]
+    return {
+        "avg_question_length": float(sum(lengths) / len(lengths)) if lengths else 0.0,
+        "wh_distribution": dict(Counter(first_tokens)),
     }
 
 
@@ -122,8 +149,28 @@ def evaluate(
     bleu_metric,
 ):
     model.eval()
-    generated_texts = []
-    reference_texts = []
+    generated_texts: List[str] = []
+    reference_texts: List[str] = []
+
+    generation_kwargs = {
+        "max_length": cfg.train.max_target_len,
+        "no_repeat_ngram_size": cfg.decoding.no_repeat_ngram_size,
+    }
+    if cfg.decoding.strategy == "beam":
+        generation_kwargs.update(
+            {
+                "num_beams": cfg.decoding.num_beams,
+                "length_penalty": cfg.decoding.length_penalty,
+            }
+        )
+    else:
+        generation_kwargs.update(
+            {
+                "do_sample": True,
+                "top_p": cfg.decoding.top_p,
+                "temperature": cfg.decoding.temperature,
+            }
+        )
 
     for batch in tqdm(
         dataloader, desc="Evaluating", disable=not accelerator.is_local_main_process
@@ -132,7 +179,7 @@ def evaluate(
             generated_tokens = accelerator.unwrap_model(model).generate(
                 input_ids=batch["input_ids"],
                 attention_mask=batch["attention_mask"],
-                max_length=cfg.max_target_len,
+                **generation_kwargs,
             )
 
         generated_tokens = accelerator.pad_across_processes(
@@ -164,25 +211,49 @@ def evaluate(
         rouge_metric=rouge_metric,
         bleu_metric=bleu_metric,
     )
+    metrics.update(_question_stats(generated_texts))
     model.train()
-    return metrics, generated_texts
+    return metrics, generated_texts, reference_texts
+
+
+def save_samples(path: Path, records: Sequence, predictions: Sequence[str], limit: int = 100) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        for record, prediction in list(zip(records, predictions))[:limit]:
+            payload = {
+                "context": getattr(record, "context", ""),
+                "answer": getattr(record, "answer", ""),
+                "reference_question": getattr(record, "question", ""),
+                "generated_question": prediction,
+            }
+            f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    LOGGER.info("Saved %s samples to %s", min(limit, len(predictions)), path)
+
+
+def save_metrics(path: Path, payload: Dict[str, object]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    LOGGER.info("Saved metrics to %s", path)
 
 
 def train(cfg: TrainConfig) -> Dict[str, float]:
     accelerator = Accelerator(
-        gradient_accumulation_steps=cfg.gradient_accumulation_steps,
-        mixed_precision="fp16" if cfg.fp16 else "no",
+        gradient_accumulation_steps=cfg.train.grad_accum,
+        mixed_precision=cfg.amp.precision,
     )
     if accelerator.is_local_main_process:
         logging.basicConfig(
             level=logging.INFO,
             format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s",
         )
-    accelerator.print(f"Loaded config from {cfg}")
+    accelerator.print(f"Loaded config from {cfg.config_path}")
 
-    set_seed(cfg.seed)
+    set_seed(cfg.train.seed)
 
-    tokenizer = AutoTokenizer.from_pretrained(cfg.model_name)
+    tokenizer = AutoTokenizer.from_pretrained(cfg.model)
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
     (
         train_loader,
         val_loader,
@@ -193,14 +264,19 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
 
     rouge_metric = load_metric("rouge")
     bleu_metric = load_metric("sacrebleu")
-
-    optimizer = AdamW(model.parameters(), lr=cfg.lr)
-
-    num_update_steps_per_epoch = math.ceil(
-        len(train_loader) / cfg.gradient_accumulation_steps
+    label_smoother = (
+        LabelSmoother(epsilon=cfg.train.label_smoothing)
+        if cfg.train.label_smoothing > 0
+        else None
     )
-    max_train_steps = cfg.num_train_epochs * num_update_steps_per_epoch
-    num_warmup_steps = int(cfg.warmup_ratio * max_train_steps)
+
+    optimizer = AdamW(
+        model.parameters(), lr=cfg.train.lr, weight_decay=cfg.train.weight_decay
+    )
+
+    num_update_steps_per_epoch = math.ceil(len(train_loader) / cfg.train.grad_accum)
+    max_train_steps = cfg.train.epochs * num_update_steps_per_epoch
+    num_warmup_steps = int(cfg.train.warmup_ratio * max_train_steps)
     lr_scheduler = get_linear_schedule_with_warmup(
         optimizer,
         num_warmup_steps=num_warmup_steps,
@@ -213,16 +289,21 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
 
     total_steps = 0
     best_rouge = -1.0
+    epochs_without_improvement = 0
     progress_bar = tqdm(
         range(max_train_steps), disable=not accelerator.is_local_main_process
     )
 
-    for epoch in range(cfg.num_train_epochs):
+    for epoch in range(cfg.train.epochs):
         model.train()
         for step, batch in enumerate(train_loader, start=1):
             with accelerator.accumulate(model):
                 outputs = model(**batch)
-                loss = outputs.loss
+                loss = (
+                    label_smoother(outputs, batch["labels"])
+                    if label_smoother
+                    else outputs.loss
+                )
                 accelerator.backward(loss)
 
                 optimizer.step()
@@ -236,8 +317,8 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
                     "Epoch %s Step %s Loss %.4f", epoch + 1, total_steps, loss.item()
                 )
 
-            if total_steps % cfg.eval_every_steps == 0:
-                eval_metrics, generated_questions = evaluate(
+            if cfg.train.eval_every_steps and total_steps % cfg.train.eval_every_steps == 0:
+                eval_metrics, generated_questions, _ = evaluate(
                     model,
                     val_loader,
                     accelerator,
@@ -246,39 +327,44 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
                     rouge_metric,
                     bleu_metric,
                 )
-                qa_records = [
-                    {
-                        "context": record.context,
-                        "answer": record.answer,
-                        "question": question,
-                    }
-                    for record, question in zip(val_records, generated_questions)
-                ]
-                eval_metrics.update(
-                    qg2qa_metrics(
-                        qa_records,
-                        qa_ckpt_en=cfg.qg2qa.qa_ckpt_en,
-                        qa_ckpt_multi=cfg.qg2qa.qa_ckpt_multi,
-                        lang=cfg.qg2qa.lang,
-                        f1_thr=cfg.qg2qa.f1_thr,
-                        conf_thr=cfg.qg2qa.conf_thr,
-                        batch_size=cfg.qg2qa.batch_size,
-                        device=cfg.qg2qa.device,
-                    )
-                )
                 accelerator.print(f"Step {total_steps}: {eval_metrics}")
                 if eval_metrics["rougeL"] > best_rouge:
                     best_rouge = eval_metrics["rougeL"]
-                    save_model(accelerator, model, tokenizer, cfg.output_dir, cfg.lora)
-                    save_metrics(cfg.output_dir, eval_metrics)
+                    epochs_without_improvement = 0
+                    save_model(accelerator, model, tokenizer, cfg.output_dir, cfg.peft.lora)
+                else:
+                    epochs_without_improvement += 1
 
             if total_steps >= max_train_steps:
                 break
 
+        eval_metrics, generated_questions, reference_questions = evaluate(
+            model, val_loader, accelerator, tokenizer, cfg, rouge_metric, bleu_metric
+        )
+        accelerator.print(
+            f"Epoch {epoch + 1} validation metrics: {json.dumps(eval_metrics, indent=2)}"
+        )
+        if eval_metrics["rougeL"] > best_rouge:
+            best_rouge = eval_metrics["rougeL"]
+            epochs_without_improvement = 0
+            save_model(accelerator, model, tokenizer, cfg.output_dir, cfg.peft.lora)
+            save_metrics(cfg.eval.save_metrics_to, _build_metrics_payload(cfg, eval_metrics))
+            _save_generation_artifacts(cfg, val_records, generated_questions)
+        else:
+            epochs_without_improvement += 1
+
+        if epochs_without_improvement >= cfg.train.early_stopping_patience:
+            accelerator.print("Early stopping triggered")
+            break
+
     accelerator.wait_for_everyone()
-    final_metrics, generated_questions = evaluate(
+    final_metrics, generated_questions, reference_questions = evaluate(
         model, val_loader, accelerator, tokenizer, cfg, rouge_metric, bleu_metric
     )
+    metadata = _build_metrics_payload(cfg, final_metrics)
+    save_metrics(cfg.eval.save_metrics_to, metadata)
+    _save_generation_artifacts(cfg, val_records, generated_questions)
+
     qa_records = [
         {
             "context": record.context,
@@ -287,21 +373,46 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
         }
         for record, question in zip(val_records, generated_questions)
     ]
-    final_metrics.update(
-        qg2qa_metrics(
-            qa_records,
-            qa_ckpt_en=cfg.qg2qa.qa_ckpt_en,
-            qa_ckpt_multi=cfg.qg2qa.qa_ckpt_multi,
-            lang=cfg.qg2qa.lang,
-            f1_thr=cfg.qg2qa.f1_thr,
-            conf_thr=cfg.qg2qa.conf_thr,
-            batch_size=cfg.qg2qa.batch_size,
-            device=cfg.qg2qa.device,
-        )
+    qa_metrics = qg2qa_metrics(
+        qa_records,
+        qa_ckpt_en=cfg.qg2qa.qa_ckpt_en,
+        qa_ckpt_multi=cfg.qg2qa.qa_ckpt_multi,
+        lang=cfg.qg2qa.lang,
+        f1_thr=cfg.qg2qa.f1_thr,
+        conf_thr=cfg.qg2qa.conf_thr,
+        batch_size=cfg.qg2qa.batch_size,
+        device=cfg.qg2qa.device,
     )
-    save_model(accelerator, model, tokenizer, cfg.output_dir, cfg.lora)
-    save_metrics(cfg.output_dir, final_metrics)
+    qg2qa_path = cfg.eval.qg2qa_save_to or cfg.output_dir / "qg2qa_val.json"
+    save_metrics(qg2qa_path, qa_metrics)
     return final_metrics
+
+
+def _save_generation_artifacts(cfg: TrainConfig, val_records: Sequence, predictions: Sequence[str]) -> None:
+    samples_path = cfg.eval.samples_path or cfg.output_dir / "samples_val.jsonl"
+    save_samples(samples_path, val_records, predictions, limit=100)
+
+
+def _build_metrics_payload(cfg: TrainConfig, metrics: Dict[str, float]) -> Dict[str, object]:
+    payload = {
+        "model": cfg.model,
+        "mode": cfg.task.mode,
+        "lang": cfg.task.lang,
+        "metrics": metrics,
+        "metadata": {
+            "seed": cfg.train.seed,
+            "git_hash": _resolve_git_hash(),
+            "config_path": str(cfg.config_path) if cfg.config_path else None,
+            "train_path": str(cfg.data.train_path),
+            "val_path": str(cfg.data.val_path),
+            "timestamp_utc": datetime.utcnow().isoformat() + "Z",
+            "max_input_len": cfg.train.max_input_len,
+            "max_target_len": cfg.train.max_target_len,
+            "decoding": cfg.decoding.__dict__,
+            "peft": cfg.peft.__dict__,
+        },
+    }
+    return payload
 
 
 def save_model(
@@ -332,17 +443,17 @@ def save_model(
     accelerator.wait_for_everyone()
 
 
-def save_metrics(output_dir: Path, metrics: Dict[str, float]) -> None:
-    output_dir.mkdir(parents=True, exist_ok=True)
-    metrics_path = output_dir / "metrics_val.json"
-    metrics_path.write_text(json.dumps(metrics, indent=2), encoding="utf-8")
-    LOGGER.info("Saved validation metrics to %s", metrics_path)
-
-
 def main() -> None:
     args = parse_args()
     cfg = TrainConfig.from_yaml(args.config)
     cfg.output_dir = cfg.output_dir.expanduser()
+    cfg.eval.save_metrics_to = cfg.eval.save_metrics_to.expanduser()
+    if cfg.eval.samples_path:
+        cfg.eval.samples_path = cfg.eval.samples_path.expanduser()
+    if cfg.eval.qg2qa_save_to:
+        cfg.eval.qg2qa_save_to = cfg.eval.qg2qa_save_to.expanduser()
+    if not cfg.qg2qa.lang:
+        cfg.qg2qa.lang = cfg.task.lang
 
     metrics = train(cfg)
     LOGGER.info("Finished training. Final metrics: %s", metrics)
@@ -350,3 +461,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

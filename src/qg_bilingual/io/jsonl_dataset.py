@@ -34,10 +34,38 @@ def load_jsonl(path: Path) -> List[JsonlRecord]:
     return records
 
 
-def format_answer_aware_prompt(answer: str, context: str) -> str:
+def format_prompt(answer: str, context: str, *, mode: str, lang: str) -> str:
+    normalized_mode = mode.lower()
+    normalized_lang = lang.lower()
+
+    if normalized_mode == "agnostic":
+        if normalized_lang in {"ua", "uk", "ukrainian"}:
+            instruction = (
+                "Згенеруйте запитання до уривка. Не використовуйте підказок про відповідь;"
+                " запитання має бути конкретним і базуватися лише на контексті."
+            )
+        else:
+            instruction = (
+                "Generate a specific, answerable question from the context only."
+                " Do not include or assume an answer in the prompt."
+            )
+        return (
+            "<question_generation>\n"
+            f"  <instruction>{instruction}</instruction>\n"
+            f"  <context>{context}</context>\n"
+            "</question_generation>"
+        )
+
+    if normalized_lang in {"ua", "uk", "ukrainian"}:
+        instruction = (
+            "Згенеруйте запитання для заданої відповіді та контексту."
+        )
+    else:
+        instruction = "Generate a question for the provided answer and context."
+
     return (
         "<question_generation>\n"
-        "  <instruction>Generate a question for the provided answer and context.</instruction>\n"
+        f"  <instruction>{instruction}</instruction>\n"
         f"  <context>{context}</context>\n"
         f"  <answer>{answer}</answer>\n"
         "</question_generation>"
@@ -52,18 +80,27 @@ class QGJsonlDataset(Dataset):
         *,
         max_input_len: int,
         max_target_len: int,
+        mode: str,
+        lang: str,
     ) -> None:
         self.records = list(records)
         self.tokenizer = tokenizer
         self.max_input_len = max_input_len
         self.max_target_len = max_target_len
+        self.mode = mode
+        self.lang = lang
 
     def __len__(self) -> int:  # noqa: D401
         return len(self.records)
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
         item = self.records[idx]
-        source = format_answer_aware_prompt(item.answer, item.context)
+        source = format_prompt(
+            item.answer,
+            item.context,
+            mode=self.mode,
+            lang=self.lang,
+        )
         model_inputs = self.tokenizer(
             source,
             max_length=self.max_input_len,
