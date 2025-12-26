@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "m.yakubets", email = "m.yakubets@zakaz.global" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "accelerate>=1.12.0",
     "datasets>=4.4.1",
@@ -42,3 +42,10 @@ dev = [
     "pre-commit>=4.5.0",
     "ruff>=0.14.6",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.black]
+line-length = 100

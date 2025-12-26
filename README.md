@@ -1,5 +1,7 @@
 # qg-bilingual
 
+![CI](https://github.com/zakazglobal/qg-bilingual/actions/workflows/ci.yml/badge.svg)
+
 Prototype repository for bilingual (EN/UA) answer-aware question generation using transformer models.
 
 ## Project plan
@@ -133,3 +135,26 @@ See [docs/data.md](docs/data.md) for a concise checklist covering normalization,
 
 ## Safety lexicons
 The safety filters rely on small manually curated lexicons stored under `src/qg_bilingual/safety/lexicons`. Terms are added conservatively and reviewed for false positives; contributors should expand them incrementally and keep notes about controversial entries in PR descriptions.
+
+## CI
+The CI workflow (`.github/workflows/ci.yml`) runs the full guardrail set on every push and pull request:
+
+1. **Formatting and static analysis**: `ruff --fix`, `black`, and `mypy --ignore-missing-imports` via pre-commit.
+2. **Unit tests**: `uv run pytest -q` (covers safety NLI/toxicity, data validation wrapper, prompt assembly).
+3. **Data validation**: English and Ukrainian JSONL checks with stats written to `data/stats_en.json` / `data/stats_ua.json`.
+4. **Smoke QG pipeline**: 1-epoch LoRA T5 run on a ~1% data slice (`configs/train_t5_smoke_en.yaml`) followed by QG→QA scoring to produce `metrics_val.json` and `qg2qa_val.json`.
+5. **Artifacts**: Hugging Face cache is reused across runs; metrics/statistics are uploaded as build artifacts.
+
+Run the same checks locally before opening a PR:
+
+```bash
+uv sync
+uv run pre-commit run --all-files
+uv run pytest -q
+uv run python data/scripts/validate_jsonl.py --path data/artifacts/en/val.jsonl --lang en --write-stats data/stats_en.json
+uv run python data/scripts/validate_jsonl.py --path data/artifacts/ua/val.jsonl --lang ua --write-stats data/stats_ua.json
+uv run python -m qg_bilingual.train --config configs/train_t5_smoke_en.yaml
+uv run python -m qg_bilingual.eval.qg2qa --config configs/qg2qa_en.yaml --input runs/t5_smoke_en/samples_val.jsonl --out runs/t5_smoke_en/
+```
+
+Any data-format or generation failure will stop the pipeline with a readable error.

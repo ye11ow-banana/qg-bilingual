@@ -1,8 +1,8 @@
 lang: en
-qa_model: deepset/roberta-large-squad2
+qa_model: distilbert-base-uncased-distilled-squad
 device: auto
-batch_size: 12
-max_context_tokens: 512
+batch_size: 8
+max_context_tokens: 384
 thresholds:
   f1_pass: 0.8
   conf_pass: 0.35
@@ -12,5 +12,5 @@ normalization:
   unify_quotes: true
   unify_apostrophe: true
 io:
-  input_jsonl: runs/t5_base_aware_en/samples_val.jsonl
-  out_dir: runs/t5_base_aware_en/
+  input_jsonl: runs/t5_smoke_en/samples_val.jsonl
+  out_dir: runs/t5_smoke_en/
