@@ -8,6 +8,7 @@ import sys
 import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
+from statistics import median
 from typing import Dict, Iterable, List, Optional, Tuple
 
 from datasets import load_dataset
@@ -29,41 +30,49 @@ APOSTROPHE_MAP = {
 }
 
 
-def normalize_text(text: str) -> str:
-    """Normalize text with NFKC, unified quotes/apostrophes, and clean spacing."""
-    text = unicodedata.normalize("NFKC", text.replace("\u00a0", " "))
+def normalize_text(s: str) -> str:
+    """NFKC, unify quotes/apostrophes, squeeze spaces, trim, and fix punctuation spacing."""
+
+    text = unicodedata.normalize("NFKC", s.replace("\u00a0", " "))
     for src, dst in QUOTE_MAP.items():
         text = text.replace(src, dst)
     for src, dst in APOSTROPHE_MAP.items():
         text = text.replace(src, dst)
-
-    # tighten spaces around punctuation and slashes
     text = re.sub(r"\s+", " ", text)
-    text = re.sub(r"\s*([,.;:!?])\s*", r"\1 ", text)
-    text = re.sub(r"\s*/\s*", "/", text)
+    text = re.sub(r"\s*([,.;:!?])", r"\1", text)
+    text = re.sub(r"\s+/\s+", "/", text)
     text = re.sub(r"\s*-\s*", "-", text)
     text = re.sub(r"\s+", " ", text)
     return text.strip()
 
 
-def align_answer(context: str, answer: str) -> Optional[str]:
+def answer_in_context(ctx: str, ans: str) -> bool:
+    ctx_norm = normalize_text(ctx)
+    ans_norm = normalize_text(ans)
+    return bool(ans_norm) and ans_norm in ctx_norm
+
+
+def hash_key(ctx: str, q: str) -> str:
+    basis = f"{normalize_text(ctx).lower()}||{normalize_text(q).lower()}"
+    return hashlib.md5(basis.encode("utf-8")).hexdigest()
+
+
+def try_align_answer(context: str, answer: str) -> Optional[str]:
     if not answer:
         return ""
 
-    context_norm = normalize_text(context)
-    answer_norm = normalize_text(answer)
-    if answer_norm in context_norm:
-        return answer_norm
+    if answer_in_context(context, answer):
+        return normalize_text(answer)
 
     candidates = [
-        answer_norm.strip(),
-        answer_norm.strip().strip(".?!,;:"),
-        answer_norm.replace("’", "'"),
-        answer_norm.replace("'", "’"),
+        answer.rstrip(".?!,;: "),
+        answer.replace("\u00a0", " "),
+        answer.replace("’", "'"),
+        answer.replace("'", "’"),
     ]
     for cand in candidates:
         cand_norm = normalize_text(cand)
-        if cand_norm in context_norm:
+        if cand_norm and cand_norm in normalize_text(context):
             return cand_norm
     return None
 
@@ -82,6 +91,7 @@ def compute_stats(records: Dict[str, List[Dict]]) -> Dict:
         "avg_len": {},
         "median_len": {},
         "unanswerable_share": {},
+        "span_fail_rate": {},
     }
 
     for split, rows in records.items():
@@ -90,23 +100,24 @@ def compute_stats(records: Dict[str, List[Dict]]) -> Dict:
         q_lens = lengths(r["question"] for r in rows)
         ans_lens = lengths(r["answer"] for r in rows)
         for label, lens in [("context", ctx_lens), ("question", q_lens), ("answer", ans_lens)]:
-            if lens:
-                stats["avg_len"].setdefault(label, {})[split] = sum(lens) / len(lens)
-                sorted_lens = sorted(lens)
-                mid = len(sorted_lens) // 2
-                if len(sorted_lens) % 2 == 0:
-                    median_val = (sorted_lens[mid - 1] + sorted_lens[mid]) / 2
-                else:
-                    median_val = sorted_lens[mid]
-                stats["median_len"].setdefault(label, {})[split] = median_val
-            else:
-                stats["avg_len"].setdefault(label, {})[split] = 0
-                stats["median_len"].setdefault(label, {})[split] = 0
+            avg = sum(lens) / len(lens) if lens else 0
+            med = median(lens) if lens else 0
+            stats["avg_len"].setdefault(label, {})[split] = avg
+            stats["median_len"].setdefault(label, {})[split] = med
         if rows:
             unans = sum(1 for r in rows if r.get("unanswerable", False))
+            answerable = len(rows) - unans
+            span_fail = sum(
+                1
+                for r in rows
+                if not r.get("unanswerable", False)
+                and not answer_in_context(r["context"], r["answer"])
+            )
             stats["unanswerable_share"][split] = unans / len(rows)
+            stats["span_fail_rate"][split] = span_fail / answerable if answerable else 0.0
         else:
             stats["unanswerable_share"][split] = 0.0
+            stats["span_fail_rate"][split] = 0.0
     return stats
 
 
@@ -120,10 +131,9 @@ def stratified_group_split(
     groups: Dict[str, List[Dict]], seed: int, train_frac: float, val_frac: float, test_frac: float
 ) -> Dict[str, List[Dict]]:
     fracs = [train_frac, val_frac, test_frac]
+    if any(frac < 0 for frac in fracs):
+        raise ValueError("train/val/test fractions must be non-negative")
     total = sum(fracs)
-    if total <= 0:
-        fracs = [0.8, 0.1, 0.1]
-        total = 1.0
     if not math.isclose(total, 1.0, rel_tol=1e-6, abs_tol=1e-3):
         raise ValueError("train/val/test fractions must sum to 1.0 (within 1e-3 tolerance)")
 
@@ -133,7 +143,7 @@ def stratified_group_split(
 
     total_groups = len(group_keys)
     if total_groups == 0:
-        return {"train": [], "val": [], "test": []}
+        raise ValueError("No groups available for splitting")
 
     positive_splits = [idx for idx, frac in enumerate(fracs) if frac > 0]
     if total_groups < len(positive_splits):
@@ -188,25 +198,23 @@ def load_squad_rows(args) -> List[Dict]:
 
 
 def process_dataset(args) -> Tuple[Dict[str, List[Dict]], Counter, List[Dict]]:
-    if any(frac < 0 for frac in (args.train_frac, args.val_frac, args.test_frac)):
-        raise ValueError("train/val/test fractions must be non-negative")
-
     all_rows = load_squad_rows(args)
 
     dedup = set()
     dropped = Counter()
     drop_records: List[Dict] = []
     grouped: Dict[str, List[Dict]] = defaultdict(list)
+    paragraph_ids: Dict[str, Dict[str, int]] = defaultdict(dict)
 
     for raw in all_rows:
         context = normalize_text(raw["context"])
         question = normalize_text(raw["question"])
-        title = raw.get("title") or ""
+        title = (raw.get("title") or "").strip()
         unanswerable = bool(raw.get("is_impossible", False))
 
         if unanswerable and args.drop_unanswerable:
-            dropped["unanswerable_dropped"] += 1
-            drop_records.append({"reason": "unanswerable_dropped", "title": title})
+            dropped["unanswerable"] += 1
+            drop_records.append({"reason": "unanswerable", "title": title})
             continue
 
         answers = raw.get("answers", {}).get("text") or []
@@ -215,38 +223,39 @@ def process_dataset(args) -> Tuple[Dict[str, List[Dict]], Counter, List[Dict]]:
             answer_text = ""
 
         if not length_ok(context, args.min_context, args.max_context):
-            dropped["context_length"] += 1
+            dropped["len_filter"] += 1
             drop_records.append({"reason": "len_filter", "field": "context", "title": title})
             continue
         if not length_ok(question, args.min_question, args.max_question):
-            dropped["question_length"] += 1
+            dropped["len_filter"] += 1
             drop_records.append({"reason": "len_filter", "field": "question", "title": title})
             continue
         if not unanswerable and not length_ok(answer_text, args.min_answer, args.max_answer):
-            dropped["answer_length"] += 1
+            dropped["len_filter"] += 1
             drop_records.append({"reason": "len_filter", "field": "answer", "title": title})
             continue
 
         if not unanswerable:
-            aligned = align_answer(context, answer_text)
+            aligned = try_align_answer(context, answer_text)
             if aligned is None:
-                dropped["answer_not_in_context"] += 1
-                drop_records.append({"reason": "answer_not_in_context", "title": title})
+                dropped["span_misaligned"] += 1
+                drop_records.append({"reason": "span_misaligned", "title": title})
                 continue
             answer_text = aligned
 
-        key = (context, question)
-        if key in dedup:
+        key_hash = hash_key(context, question)
+        if key_hash in dedup:
             dropped["duplicate"] += 1
             drop_records.append({"reason": "duplicate", "title": title})
             continue
-        dedup.add(key)
+        dedup.add(key_hash)
 
-        group_hash = hashlib.md5(context.encode("utf-8")).hexdigest()
-        if args.stratify_by == "title":
-            group_id = title or "<unknown-title>"
-        else:
-            group_id = f"{title}::{group_hash}"
+        para_map = paragraph_ids[title]
+        if context not in para_map:
+            para_map[context] = len(para_map)
+        paragraph_index = para_map[context]
+        group_id = f"{title}::{paragraph_index}"
+
         grouped[group_id].append(
             {
                 "context": context,
@@ -254,6 +263,7 @@ def process_dataset(args) -> Tuple[Dict[str, List[Dict]], Counter, List[Dict]]:
                 "answer": answer_text,
                 "unanswerable": unanswerable,
                 "title": title,
+                "paragraph_index": paragraph_index,
             }
         )
 
@@ -280,19 +290,13 @@ def parse_args():
     parser.add_argument("--max-question", type=int, default=40)
     parser.add_argument("--min-answer", type=int, default=1)
     parser.add_argument("--max-answer", type=int, default=15)
-    parser.add_argument(
-        "--stratify-by",
-        choices=["paragraph", "title"],
-        default="paragraph",
-        help="Stratify splits by paragraph (context hash) or by article title.",
-    )
+    parser.add_argument("--train-frac", type=float, default=0.8)
+    parser.add_argument("--val-frac", type=float, default=0.1)
+    parser.add_argument("--test-frac", type=float, default=0.1)
     unans_group = parser.add_mutually_exclusive_group()
     unans_group.add_argument("--keep-unanswerable", dest="drop_unanswerable", action="store_false")
     unans_group.add_argument("--drop-unanswerable", dest="drop_unanswerable", action="store_true")
     parser.set_defaults(drop_unanswerable=False)
-    parser.add_argument("--train-frac", type=float, default=0.8)
-    parser.add_argument("--val-frac", type=float, default=0.1)
-    parser.add_argument("--test-frac", type=float, default=0.1)
     return parser.parse_args()
 
 
