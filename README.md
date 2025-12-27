@@ -133,6 +133,12 @@ Both pipelines normalize text (NFKC + unified quotes/apostrophes + clean punctua
 
 See [docs/data.md](docs/data.md) for a concise checklist covering normalization, unanswerable policy, stratification, and determinism.
 
+## Документація
+- Datasheets: [docs/datasheets/en.md](docs/datasheets/en.md) та [docs/datasheets/ua.md](docs/datasheets/ua.md).
+- Метрики та нормалізація: [docs/metrics.md](docs/metrics.md).
+- Процедури оцінювання: [docs/protocols.md](docs/protocols.md).
+- Рендеринг чисел із артефактів: `uv run python scripts/render_docs.py --in docs/ --out docs/ --stats-en data/stats_en.json --stats-ua data/stats_ua.json --safety configs/safety.yaml`.
+
 ## Safety lexicons
 The safety filters rely on small manually curated lexicons stored under `src/qg_bilingual/safety/lexicons`. Terms are added conservatively and reviewed for false positives; contributors should expand them incrementally and keep notes about controversial entries in PR descriptions.
 
