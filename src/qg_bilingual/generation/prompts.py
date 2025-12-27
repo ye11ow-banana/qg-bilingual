@@ -89,12 +89,14 @@ def build_prompt(
     normalized_answer = normalize_text(answer) if answer else ""
 
     instruction_en = (
-        "qg: generate a concise factual wh-question in English from the context and the given answer."
+        "qg: generate a concise factual wh-question in English from the context and the given answer;"
+        f" the exact short answer must be {normalized_answer}."
         if mode == "aware"
         else "qg: generate a concise factual wh-question in English using only the context."
     )
     instruction_ua = (
-        "qg: згенеруй лаконічне фактологічне wh-питання українською на основі контексту та наведеної відповіді."
+        "qg: згенеруй лаконічне фактологічне wh-питання українською на основі контексту та наведеної відповіді;"
+        f" точна коротка відповідь має бути {normalized_answer}."
         if mode == "aware"
         else "qg: згенеруй лаконічне фактологічне wh-питання українською, спираючись лише на контекст."
     )

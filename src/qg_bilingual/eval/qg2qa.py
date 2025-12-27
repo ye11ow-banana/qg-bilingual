@@ -40,6 +40,7 @@ class QG2QARunConfig:
     device: str = "auto"
     batch_size: int = 16
     max_context_tokens: int = 512
+    gold_field: str = "gold_answer"
     thresholds: Thresholds = field(default_factory=Thresholds)
     normalization: NormalizationConfig = field(default_factory=NormalizationConfig)
     io: IOConfig = field(default_factory=IOConfig)
@@ -75,6 +76,7 @@ def _load_config(path: Path) -> QG2QARunConfig:
         device=str(raw.get("device", "auto")),
         batch_size=int(raw.get("batch_size", 16)),
         max_context_tokens=int(raw.get("max_context_tokens", 512)),
+        gold_field=str(raw.get("gold_field", "gold_answer")),
         thresholds=Thresholds(
             f1_pass=float(thresholds.get("f1_pass", 0.8)),
             conf_pass=float(thresholds.get("conf_pass", 0.35)),
@@ -201,7 +203,7 @@ def _prepare_examples(
     for idx, row in enumerate(raw_rows):
         question = str(row.get("question", "")).strip()
         context = str(row.get("context", "")).strip()
-        gold = str(row.get("gold_answer", row.get("answer", "")))
+        gold = str(row.get(config.gold_field, row.get("answer", "")))
         unanswerable = bool(row.get("unanswerable", False))
         lang = str(row.get("lang", config.lang)).lower()
         wh_type = row.get("wh_type")
@@ -447,6 +449,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--config", type=Path, required=True, help="Path to qg2qa_*.yaml config")
     parser.add_argument("--input", type=Path, help="Override input_jsonl from config")
     parser.add_argument("--out", type=Path, help="Override out_dir from config")
+    parser.add_argument(
+        "--gold-field",
+        type=str,
+        default="gold_answer",
+        help="Name of the JSONL field containing the gold answer",
+    )
     parser.add_argument("--include-unanswerable", action="store_true", help="Evaluate unanswerable rows as no-answer spans")
     return parser.parse_args()
 
@@ -459,6 +467,8 @@ def main() -> None:
         config.io.input_jsonl = args.input
     if args.out:
         config.io.out_dir = args.out
+    if args.gold_field:
+        config.gold_field = args.gold_field
 
     if not config.io.out_dir:
         raise ValueError("--out or io.out_dir in config is required")
