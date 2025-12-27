@@ -6,7 +6,7 @@ import logging
 import math
 import subprocess
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Sequence, Tuple
 
@@ -422,7 +422,7 @@ def _build_metrics_payload(cfg: TrainConfig, metrics: Dict[str, float]) -> Dict[
             "config_path": str(cfg.config_path) if cfg.config_path else None,
             "train_path": str(cfg.data.train_path),
             "val_path": str(cfg.data.val_path),
-            "timestamp_utc": datetime.utcnow().isoformat() + "Z",
+            "timestamp_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "max_input_len": cfg.train.max_input_len,
             "max_target_len": cfg.train.max_target_len,
             "decoding": cfg.decoding.__dict__,
