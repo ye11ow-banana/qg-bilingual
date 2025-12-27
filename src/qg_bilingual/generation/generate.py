@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
+from pathlib import Path
 from typing import Dict, Iterable, List, Mapping, MutableSequence, Optional
 
 import torch
@@ -68,6 +69,9 @@ def generate_questions(
     cfg_decoding: Mapping[str, object],
     cfg_task: Mapping[str, object],
     device: str | torch.device = "auto",
+    *,
+    debug: bool = False,
+    run_dir: str | Path | None = None,
 ) -> List[Dict[str, object]]:
     """Generate questions for provided records.
 
@@ -79,7 +83,12 @@ def generate_questions(
         raise ValueError("cfg_model must provide 'name' or 'model_name'")
 
     tokenizer_name = cfg_model.get("tokenizer") or model_name
-    max_input_len = int(cfg_model.get("max_input_len", 512))
+    max_input_len = int(
+        cfg_model.get("max_input_len")
+        or cfg_decoding.get("max_input_len")
+        or cfg_task.get("max_input_len")
+        or 512
+    )
     batch_size = int(cfg_model.get("batch_size", 8))
     seed = int(cfg_model.get("seed", 42))
 
@@ -88,6 +97,12 @@ def generate_questions(
     resolved_device = _resolve_device(device)
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(resolved_device)
+
+    model.config.pad_token_id = tokenizer.pad_token_id
+    if getattr(model.config, "decoder_start_token_id", None) is None:
+        model.config.decoder_start_token_id = tokenizer.pad_token_id
+    if getattr(model.config, "eos_token_id", None) is None and tokenizer.eos_token_id is not None:
+        model.config.eos_token_id = tokenizer.eos_token_id
 
     records_list = list(records)
     prompts: MutableSequence[str] = []
@@ -102,36 +117,37 @@ def generate_questions(
         if context is None:
             raise ValueError("Each record must include 'context'")
         answer = _extract_answer(record)
-        prompt = build_prompt(
-            context=str(context),
-            answer=answer,
-            mode=mode,
-            wh_type=wh_forced,
-            lang=lang,
-        )
+        try:
+            prompt = build_prompt(
+                context=str(context),
+                answer=answer,
+                mode=mode,
+                wh_type=wh_forced,
+                lang=lang,
+            )
+        except ValueError as exc:  # pragma: no cover - defensive skip
+            LOGGER.warning("Skipping record %s: %s", record.get("id", idx), exc)
+            continue
         prompts.append(prompt)
-        prompt_meta.append({
-            "id": record.get("id", idx),
-            "answer": answer,
-            "raw_lang": record.get("lang", lang),
-        })
+        prompt_meta.append(
+            {
+                "id": record.get("id", idx),
+                "answer": answer,
+                "raw_lang": record.get("lang", lang),
+            }
+        )
 
     generation_kwargs: Dict[str, object] = {
-        "max_new_tokens": int(cfg_decoding.get("max_new_tokens", 32)),
-        "min_new_tokens": int(cfg_decoding.get("min_new_tokens", 0)),
+        "max_new_tokens": max(8, int(cfg_decoding.get("max_new_tokens", 32))),
+        "min_new_tokens": max(4, int(cfg_decoding.get("min_new_tokens", 4))),
         "no_repeat_ngram_size": int(cfg_decoding.get("no_repeat_ngram_size", 0)),
         "repetition_penalty": float(cfg_decoding.get("repetition_penalty", 1.0)),
+        "length_penalty": float(cfg_decoding.get("length_penalty", 1.0)),
     }
 
     strategy = str(cfg_decoding.get("strategy", "beam")).lower()
     if strategy == "beam":
-        generation_kwargs.update(
-            {
-                "num_beams": int(cfg_decoding.get("num_beams", 4)),
-                "length_penalty": float(cfg_decoding.get("length_penalty", 1.0)),
-                "do_sample": False,
-            }
-        )
+        generation_kwargs.update({"num_beams": int(cfg_decoding.get("num_beams", 4)), "do_sample": False})
     elif strategy in {"topp", "top-p", "top_p"}:
         generation_kwargs.update(
             {
@@ -160,13 +176,20 @@ def generate_questions(
         tokenized = {k: v.to(resolved_device) for k, v in tokenized.items()}
         prompt_lengths = tokenized["attention_mask"].sum(dim=1).tolist()
 
-        generated = model.generate(**tokenized, **generation_kwargs)
-        decoded = tokenizer.batch_decode(generated, skip_special_tokens=True)
+        generated = model.generate(
+            **tokenized,
+            **generation_kwargs,
+            early_stopping=True,
+            return_dict_in_generate=True,
+        )
+        decoded = tokenizer.batch_decode(
+            generated.sequences, skip_special_tokens=True, clean_up_tokenization_spaces=True
+        )
+        decoded = [_apply_question_postprocessing(text).strip() for text in decoded]
 
-        for meta, prompt_len, raw_question, decoded_ids in zip(
-            batch_meta, prompt_lengths, decoded, generated
+        for meta, prompt_len, question, decoded_ids in zip(
+            batch_meta, prompt_lengths, decoded, generated.sequences
         ):
-            question = _apply_question_postprocessing(raw_question)
             wh_detected = _detect_wh_type(question, lang)
             gen_len = int((decoded_ids != tokenizer.pad_token_id).sum().item())
 
@@ -180,6 +203,12 @@ def generate_questions(
                     "decoding": {"strategy": strategy, **generation_kwargs},
                 }
             )
+
+    if debug and outputs:
+        target_dir = Path(run_dir or cfg_task.get("run_dir") or ".")
+        target_dir.mkdir(parents=True, exist_ok=True)
+        with (target_dir / "debug_gen.txt").open("w", encoding="utf-8") as f:
+            f.write("PROMPT:\n" + prompts[0] + "\n\nOUTPUT:\n" + outputs[0]["question"] + "\n")
 
     return outputs
 

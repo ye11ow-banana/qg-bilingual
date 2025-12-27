@@ -53,6 +53,12 @@ def build_model(cfg: TrainConfig, tokenizer) -> AutoModelForSeq2SeqLM:
     if hasattr(model.config, "attention_dropout"):
         model.config.attention_dropout = cfg.train.dropout
 
+    model.config.pad_token_id = tokenizer.pad_token_id
+    if getattr(model.config, "decoder_start_token_id", None) is None:
+        model.config.decoder_start_token_id = tokenizer.pad_token_id
+    if getattr(model.config, "eos_token_id", None) is None and tokenizer.eos_token_id is not None:
+        model.config.eos_token_id = tokenizer.eos_token_id
+
     if cfg.peft.lora:
         lora_config = LoraConfig(
             task_type=TaskType.SEQ_2_SEQ_LM,
@@ -170,14 +176,18 @@ def evaluate(
     reference_texts: List[str] = []
 
     generation_kwargs = {
-        "max_length": cfg.train.max_target_len,
+        "max_new_tokens": max(8, cfg.decoding.max_new_tokens),
+        "min_new_tokens": max(4, cfg.decoding.min_new_tokens),
         "no_repeat_ngram_size": cfg.decoding.no_repeat_ngram_size,
+        "repetition_penalty": cfg.decoding.repetition_penalty,
+        "length_penalty": cfg.decoding.length_penalty,
+        "early_stopping": True,
     }
     if cfg.decoding.strategy == "beam":
         generation_kwargs.update(
             {
                 "num_beams": cfg.decoding.num_beams,
-                "length_penalty": cfg.decoding.length_penalty,
+                "do_sample": False,
             }
         )
     else:
@@ -237,11 +247,14 @@ def save_samples(path: Path, records: Sequence, predictions: Sequence[str], limi
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
         for record, prediction in list(zip(records, predictions))[:limit]:
+            cleaned_prediction = prediction.strip()
             payload = {
                 "context": getattr(record, "context", ""),
                 "answer": getattr(record, "answer", ""),
                 "reference_question": getattr(record, "question", ""),
-                "generated_question": prediction,
+                "generated_question": cleaned_prediction,
+                "question_len": len(cleaned_prediction.split()),
+                "invalid_generation": len(cleaned_prediction) == 0,
             }
             f.write(json.dumps(payload, ensure_ascii=False) + "\n")
     LOGGER.info("Saved %s samples to %s", min(limit, len(predictions)), path)
