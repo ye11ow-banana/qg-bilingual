@@ -17,7 +17,6 @@ AWARE_TEMPLATE = """
 <question_generation>
   <instruction>{instruction}</instruction>
   <context>{context}</context>
-  <answer>{answer}</answer>
   {wh_constraint}
 </question_generation>
 """.strip()
@@ -88,18 +87,19 @@ def build_prompt(
     normalized_context = normalize_text(context)
     normalized_answer = normalize_text(answer) if answer else ""
 
-    instruction_en = (
-        "qg: generate a concise factual wh-question in English from the context and the given answer;"
-        f" the exact short answer must be {normalized_answer}."
-        if mode == "aware"
-        else "qg: generate a concise factual wh-question in English using only the context."
-    )
-    instruction_ua = (
-        "qg: згенеруй лаконічне фактологічне wh-питання українською на основі контексту та наведеної відповіді;"
-        f" точна коротка відповідь має бути {normalized_answer}."
-        if mode == "aware"
-        else "qg: згенеруй лаконічне фактологічне wh-питання українською, спираючись лише на контекст."
-    )
+    if mode == "aware":
+        instruction_en = (
+            "Generate a concise factual wh-question USING ONLY the context so that the EXACT short answer is:"
+            f" \"{normalized_answer}\"."
+        )
+        instruction_ua = (
+            "Згенеруй коротке фактологічне wh-питання ВИКЛЮЧНО з контексту так, щоб ТОЧНОЮ короткою відповіддю було: "
+            f"«{normalized_answer}»."
+        )
+    else:
+        instruction_en = "Generate a concise factual wh-question USING ONLY the context."
+        instruction_ua = "Згенеруй коротке фактологічне wh-питання ВИКЛЮЧНО з контексту."
+
     instruction = instruction_ua if lang.lower() == "ua" else instruction_en
 
     if len(normalized_context.split()) < 20:

@@ -256,16 +256,18 @@ def save_samples(
     with path.open("w", encoding="utf-8") as f:
         for record, prediction in list(zip(records, predictions)):
             answer = getattr(record, "answer", "")
-            if mode.lower() == "aware" and not str(answer).strip():
+            cleaned_answer = str(answer).strip()
+            if mode.lower() == "aware" and not cleaned_answer:
                 continue
 
             cleaned_prediction = prediction.strip()
             payload = {
                 "context": getattr(record, "context", ""),
-                "answer": answer,
-                "gold_answer": answer,
+                "question": cleaned_prediction,
+                "gold_answer": cleaned_answer,
+                "unanswerable": cleaned_answer == "",
+                "lang": getattr(record, "lang", ""),
                 "reference_question": getattr(record, "question", ""),
-                "generated_question": cleaned_prediction,
                 "question_len": len(cleaned_prediction.split()),
                 "invalid_generation": len(cleaned_prediction) == 0,
             }
