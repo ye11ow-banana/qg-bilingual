@@ -15,7 +15,7 @@ LOGGER = logging.getLogger(__name__)
 
 AWARE_TEMPLATE = """
 <question_generation>
-  <instruction>Generate a concise factoid wh-question about the highlighted answer from the context.</instruction>
+  <instruction>{instruction}</instruction>
   <context>{context}</context>
   <answer>{answer}</answer>
   {wh_constraint}
@@ -24,7 +24,7 @@ AWARE_TEMPLATE = """
 
 AGNOSTIC_TEMPLATE = """
 <question_generation>
-  <instruction>Generate a concise factoid wh-question grounded only in the context (no assumptions).</instruction>
+  <instruction>{instruction}</instruction>
   <context>{context}</context>
   {wh_constraint}
 </question_generation>
@@ -88,17 +88,34 @@ def build_prompt(
     normalized_context = normalize_text(context)
     normalized_answer = normalize_text(answer) if answer else ""
 
+    instruction_en = (
+        "qg: generate a concise factual wh-question in English from the context and the given answer."
+        if mode == "aware"
+        else "qg: generate a concise factual wh-question in English using only the context."
+    )
+    instruction_ua = (
+        "qg: згенеруй лаконічне фактологічне wh-питання українською на основі контексту та наведеної відповіді."
+        if mode == "aware"
+        else "qg: згенеруй лаконічне фактологічне wh-питання українською, спираючись лише на контекст."
+    )
+    instruction = instruction_ua if lang.lower() == "ua" else instruction_en
+
     if len(normalized_context.split()) < 20:
         raise ValueError("Context too short for question generation (reason=too_short_context)")
 
     if mode == "agnostic":
-        return AGNOSTIC_TEMPLATE.format(context=normalized_context, wh_constraint=constraint)
+        return AGNOSTIC_TEMPLATE.format(
+            instruction=instruction,
+            context=normalized_context,
+            wh_constraint=constraint,
+        )
 
     if not normalized_answer:
         LOGGER.warning("Skipping record without answer in aware mode")
         raise ValueError("Missing answer for aware prompt")
 
     return AWARE_TEMPLATE.format(
+        instruction=instruction,
         context=normalized_context,
         answer=normalized_answer,
         wh_constraint=constraint,

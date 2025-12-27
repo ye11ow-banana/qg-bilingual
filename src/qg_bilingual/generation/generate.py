@@ -63,6 +63,13 @@ def _apply_question_postprocessing(text: str) -> str:
     return cleaned
 
 
+def _needs_regeneration(text: str) -> bool:
+    normalized = text.strip()
+    if not normalized:
+        return True
+    return not any(char.isalnum() for char in normalized)
+
+
 def generate_questions(
     records: Iterable[Mapping[str, object]],
     cfg_model: Mapping[str, object],
@@ -137,10 +144,15 @@ def generate_questions(
             }
         )
 
+    min_new_tokens = max(8, int(cfg_decoding.get("min_new_tokens", 8)))
+    max_new_tokens = max(24, int(cfg_decoding.get("max_new_tokens", 32)))
+    if max_new_tokens < min_new_tokens:
+        max_new_tokens = min_new_tokens + 8
+
     generation_kwargs: Dict[str, object] = {
-        "max_new_tokens": max(8, int(cfg_decoding.get("max_new_tokens", 32))),
-        "min_new_tokens": max(4, int(cfg_decoding.get("min_new_tokens", 4))),
-        "no_repeat_ngram_size": int(cfg_decoding.get("no_repeat_ngram_size", 0)),
+        "max_new_tokens": max_new_tokens,
+        "min_new_tokens": min_new_tokens,
+        "no_repeat_ngram_size": int(cfg_decoding.get("no_repeat_ngram_size", 3)),
         "repetition_penalty": float(cfg_decoding.get("repetition_penalty", 1.0)),
         "length_penalty": float(cfg_decoding.get("length_penalty", 1.0)),
     }
@@ -162,6 +174,7 @@ def generate_questions(
     LOGGER.info("Decoding strategy: %s | params=%s", strategy, generation_kwargs)
 
     outputs: List[Dict[str, object]] = []
+    debug_payload: Optional[Dict[str, object]] = None
     for batch_start in range(0, len(prompts), batch_size):
         batch_prompts = prompts[batch_start : batch_start + batch_size]
         batch_meta = prompt_meta[batch_start : batch_start + batch_size]
@@ -179,19 +192,54 @@ def generate_questions(
         generated = model.generate(
             **tokenized,
             **generation_kwargs,
-            early_stopping=True,
             return_dict_in_generate=True,
         )
-        decoded = tokenizer.batch_decode(
+        decoded_raw = tokenizer.batch_decode(
             generated.sequences, skip_special_tokens=True, clean_up_tokenization_spaces=True
         )
-        decoded = [_apply_question_postprocessing(text).strip() for text in decoded]
+        decoded = [_apply_question_postprocessing(text).strip() for text in decoded_raw]
 
-        for meta, prompt_len, question, decoded_ids in zip(
-            batch_meta, prompt_lengths, decoded, generated.sequences
+        for meta, prompt_len, question, decoded_ids, raw_text, prompt_text in zip(
+            batch_meta, prompt_lengths, decoded, generated.sequences, decoded_raw, batch_prompts
         ):
+            regen_used = False
+            regen_kwargs: Dict[str, object] | None = None
+            regen_decoded_ids = decoded_ids
+            regen_raw_text = raw_text
+
+            if _needs_regeneration(question):
+                regen_kwargs = {
+                    **generation_kwargs,
+                    "do_sample": True,
+                    "top_p": float(cfg_decoding.get("top_p", 0.9)),
+                    "temperature": float(cfg_decoding.get("temperature", 0.9)),
+                }
+                regen_kwargs.pop("num_beams", None)
+                regen_inputs = tokenizer(
+                    prompt_text,
+                    padding=True,
+                    truncation=True,
+                    max_length=max_input_len,
+                    return_tensors="pt",
+                )
+                regen_inputs = {k: v.to(resolved_device) for k, v in regen_inputs.items()}
+                regen_generated = model.generate(
+                    **regen_inputs,
+                    **regen_kwargs,
+                    return_dict_in_generate=True,
+                )
+                regen_raw_text = tokenizer.decode(
+                    regen_generated.sequences[0],
+                    skip_special_tokens=True,
+                    clean_up_tokenization_spaces=True,
+                )
+                question = _apply_question_postprocessing(regen_raw_text).strip()
+                regen_used = True
+                regen_decoded_ids = regen_generated.sequences[0]
+
             wh_detected = _detect_wh_type(question, lang)
-            gen_len = int((decoded_ids != tokenizer.pad_token_id).sum().item())
+            gen_len = int((regen_decoded_ids != tokenizer.pad_token_id).sum().item())
+            invalid = _needs_regeneration(question)
 
             outputs.append(
                 {
@@ -200,15 +248,50 @@ def generate_questions(
                     "wh_type": wh_detected,
                     "prompt_len": int(prompt_len),
                     "gen_len": gen_len,
+                    "invalid_generation": invalid,
                     "decoding": {"strategy": strategy, **generation_kwargs},
                 }
             )
 
-    if debug and outputs:
+            if debug_payload is None:
+                debug_payload = {
+                    "prompt": prompt_text,
+                    "strategy": strategy,
+                    "generation_kwargs": generation_kwargs,
+                    "raw_output": raw_text,
+                    "normalized_output": question,
+                    "regen_used": regen_used,
+                    "regen_kwargs": regen_kwargs,
+                    "regen_raw_output": regen_raw_text,
+                    "gen_len": gen_len,
+                }
+
+    if debug:
         target_dir = Path(run_dir or cfg_task.get("run_dir") or ".")
         target_dir.mkdir(parents=True, exist_ok=True)
-        with (target_dir / "debug_gen.txt").open("w", encoding="utf-8") as f:
-            f.write("PROMPT:\n" + prompts[0] + "\n\nOUTPUT:\n" + outputs[0]["question"] + "\n")
+        debug_path = target_dir / "debug_gen.txt"
+        with debug_path.open("w", encoding="utf-8") as f:
+            if debug_payload:
+                f.write(
+                    "PROMPT:\n"
+                    + debug_payload["prompt"]
+                    + "\n\nDECODE PARAMS:\n"
+                    + str(debug_payload["generation_kwargs"])
+                    + f"\nstrategy={debug_payload['strategy']}"
+                    + "\nREGEN USED: "
+                    + str(debug_payload["regen_used"])
+                    + "\nRAW OUTPUT:\n"
+                    + debug_payload["raw_output"]
+                    + "\nNORMALIZED OUTPUT:\n"
+                    + debug_payload["normalized_output"]
+                    + "\nREGEN RAW OUTPUT:\n"
+                    + str(debug_payload["regen_raw_output"])
+                    + "\nGEN LEN: "
+                    + str(debug_payload["gen_len"])
+                    + "\n"
+                )
+            else:
+                f.write("No outputs generated.\n")
 
     return outputs
 
