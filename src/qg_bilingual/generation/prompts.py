@@ -6,9 +6,12 @@ optional wh-type constraints in English and Ukrainian.
 
 from __future__ import annotations
 
+import logging
 from typing import Optional
 
 from qg_bilingual.data import normalize_text
+
+LOGGER = logging.getLogger(__name__)
 
 AWARE_TEMPLATE = """
 <question_generation>
@@ -85,8 +88,15 @@ def build_prompt(
     normalized_context = normalize_text(context)
     normalized_answer = normalize_text(answer) if answer else ""
 
+    if len(normalized_context.split()) < 20:
+        raise ValueError("Context too short for question generation (reason=too_short_context)")
+
     if mode == "agnostic":
         return AGNOSTIC_TEMPLATE.format(context=normalized_context, wh_constraint=constraint)
+
+    if not normalized_answer:
+        LOGGER.warning("Skipping record without answer in aware mode")
+        raise ValueError("Missing answer for aware prompt")
 
     return AWARE_TEMPLATE.format(
         context=normalized_context,
