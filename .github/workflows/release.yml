@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push (CPU)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.cpu
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/qg-bilingual-api:${{ github.ref_name }}-cpu
+            ghcr.io/${{ github.repository_owner }}/qg-bilingual-api:latest-cpu
+
+      - name: Build & push demo (CPU)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.cpu
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/qg-bilingual-demo:${{ github.ref_name }}-cpu
+            ghcr.io/${{ github.repository_owner }}/qg-bilingual-demo:latest-cpu
+
+  docker-cuda:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push (CUDA)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.cuda
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/qg-bilingual-api:${{ github.ref_name }}-cuda
+            ghcr.io/${{ github.repository_owner }}/qg-bilingual-api:latest-cuda
+
+      - name: Build & push demo (CUDA)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.cuda
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/qg-bilingual-demo:${{ github.ref_name }}-cuda
+            ghcr.io/${{ github.repository_owner }}/qg-bilingual-demo:latest-cuda
