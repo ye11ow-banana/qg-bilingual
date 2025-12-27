@@ -1,0 +1,79 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.cpu
+    image: ghcr.io/zakazglobal/qg-bilingual-api:latest-cpu
+    env_file: .env
+    environment:
+      - HF_HOME=/cache/hf
+      - SERVER_CONFIG=server/config.yaml
+    volumes:
+      - hf-cache:/cache/hf
+    ports:
+      - "8000:8000"
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "4g"
+
+  demo:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.cpu
+    image: ghcr.io/zakazglobal/qg-bilingual-demo:latest-cpu
+    command: ["bash","docker/entrypoint_demo.sh"]
+    environment:
+      - DEMO_MODE=http
+      - SERVER_URL=http://api:8000
+      - HF_HOME=/cache/hf
+    volumes:
+      - hf-cache:/cache/hf
+    ports:
+      - "7860:7860"
+    depends_on:
+      - api
+
+  api-gpu:
+    profiles: [gpu]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.cuda
+    image: ghcr.io/zakazglobal/qg-bilingual-api:latest-cuda
+    env_file: .env
+    environment:
+      - HF_HOME=/cache/hf
+      - SERVER_CONFIG=server/config.yaml
+    volumes:
+      - hf-cache:/cache/hf
+    ports:
+      - "8000:8000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  demo-gpu:
+    profiles: [gpu]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.cuda
+    image: ghcr.io/zakazglobal/qg-bilingual-demo:latest-cuda
+    command: ["bash","docker/entrypoint_demo.sh"]
+    environment:
+      - DEMO_MODE=http
+      - SERVER_URL=http://api-gpu:8000
+      - HF_HOME=/cache/hf
+    volumes:
+      - hf-cache:/cache/hf
+    ports:
+      - "7860:7860"
+    depends_on:
+      - api-gpu
+
+volumes:
+  hf-cache:

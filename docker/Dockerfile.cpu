@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+ENV UV_SYSTEM_PYTHON=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    HF_HUB_DISABLE_TELEMETRY=1 \
+    HF_HOME=/root/.cache/huggingface
+
+RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
+
+# uv
+RUN pip install --no-cache-dir uv
+
+WORKDIR /app
+COPY pyproject.toml uv.lock ./
+RUN uv sync --no-dev
+
+COPY . .
+# port for FastAPI
+EXPOSE 8000
+
+# Optional: pre-populate tokenizer cache
+# RUN python - <<'PY'
+# from transformers import AutoTokenizer
+# AutoTokenizer.from_pretrained("t5-small")
+# PY
+
+ENTRYPOINT ["bash","docker/entrypoint_server.sh"]

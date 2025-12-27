@@ -19,7 +19,7 @@ uv run uvicorn qg_bilingual.server.app:app --host 0.0.0.0 --port 8000
 ```
 
 - Configuration lives in `src/qg_bilingual/server/config.yaml` and controls model names, decoding parameters, and thresholds for QA/NLI/toxicity checks.
-- `/healthz` returns `{"status": "ok"}`.
+- `/healthz` returns `{ "status": "ok" }`.
 - `/generate_safe` accepts a JSON body described by `GenerateRequest` and returns `GenerateResponse` with metrics, reasons for filtering, and debug fields.
 
 Example requests:
@@ -39,6 +39,48 @@ curl -X POST :8000/generate_safe -H 'Content-Type: application/json' -d '{
 ```
 
 Responses include `question` (or `null` if filtered out), `passed`, `reasons` (e.g. `qg2qa_f1_low`, `nli_neutral`, `lexicon_block`), a `metrics` map (`qa_em`, `qa_f1`, `qa_conf`, `tox_prob`, `nli`), and `debug` fields with decoding options and detected WH tokens.
+
+## Docker images & Compose
+
+Reproducible CPU/CUDA images live under `docker/` with shared model cache support. The `.env` file is mounted automatically by Compose; start with the following template and adjust model names for production:
+
+```env
+HF_HOME=/cache/hf
+QG_MODEL=google/mt5-base
+QA_EN=deepset/roberta-base-squad2
+QA_MULTI=deepset/xlm-roberta-base-squad2
+```
+
+### Build locally (CPU)
+
+```bash
+make build-cpu TAG=latest
+```
+
+### Run with Compose (CPU)
+
+```bash
+docker compose up -d demo
+curl :8000/healthz
+open http://localhost:7860
+```
+
+The shared `hf-cache` volume keeps Hugging Face artifacts across restarts so models are not re-downloaded.
+
+### GPU profile
+
+CUDA images are built from `docker/Dockerfile.cuda`. Enable the GPU stack with the dedicated profile:
+
+```bash
+make build-cuda TAG=latest
+docker compose --profile gpu up -d demo-gpu
+```
+
+Services `api-gpu`/`demo-gpu` request `nvidia` devices and expose the same ports as the CPU pair.
+
+### Release workflow
+
+Tagging a release as `vX.Y.Z` builds and pushes the API and demo images to GHCR (CPU and CUDA) via `.github/workflows/release.yml` with tags `vX.Y.Z-{cpu,cuda}` and `latest-{cpu,cuda}`.
 
 ## Train (T5-base aware)
 Run the answer-aware question generation training loop with the provided YAML config:

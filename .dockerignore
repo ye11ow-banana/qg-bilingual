@@ -1,0 +1,8 @@
+.git
+runs/
+**/__pycache__/
+data/artifacts/*
+!data/artifacts/en/val.jsonl
+!data/artifacts/ua/val.jsonl
+models/
+.env
