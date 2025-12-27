@@ -80,8 +80,31 @@ class DecodingConfig:
     num_beams: int = 6
     length_penalty: float = 1.0
     no_repeat_ngram_size: int = 3
+    max_new_tokens: int = 32
+    min_new_tokens: int = 8
+    repetition_penalty: float = 1.0
     top_p: float = 0.9
     temperature: float = 1.0
+
+    def __post_init__(self) -> None:
+        def _as_float(x):
+            return float(x)
+
+        def _as_int(x):
+            return int(x)
+
+        self.max_new_tokens = _as_int(self.max_new_tokens)
+        self.min_new_tokens = _as_int(self.min_new_tokens)
+        self.num_beams = _as_int(self.num_beams)
+        self.no_repeat_ngram_size = _as_int(self.no_repeat_ngram_size)
+        self.repetition_penalty = _as_float(self.repetition_penalty)
+        self.length_penalty = _as_float(self.length_penalty)
+        self.top_p = _as_float(self.top_p)
+        self.temperature = _as_float(self.temperature)
+
+        assert self.max_new_tokens >= 8
+        assert self.min_new_tokens >= 8
+        assert self.max_new_tokens > self.min_new_tokens
 
 
 @dataclass

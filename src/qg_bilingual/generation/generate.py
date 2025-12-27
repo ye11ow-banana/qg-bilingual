@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
+from pathlib import Path
 from typing import Dict, Iterable, List, Mapping, MutableSequence, Optional
 
 import torch
@@ -62,12 +63,23 @@ def _apply_question_postprocessing(text: str) -> str:
     return cleaned
 
 
+def _looks_empty_or_punct(text: str) -> bool:
+    stripped = text.strip()
+    if not stripped:
+        return True
+    alnum = re.sub(r"[\W_]+", "", stripped, flags=re.UNICODE)
+    return len(alnum) == 0
+
+
 def generate_questions(
     records: Iterable[Mapping[str, object]],
     cfg_model: Mapping[str, object],
     cfg_decoding: Mapping[str, object],
     cfg_task: Mapping[str, object],
     device: str | torch.device = "auto",
+    *,
+    debug: bool = False,
+    run_dir: str | Path | None = None,
 ) -> List[Dict[str, object]]:
     """Generate questions for provided records.
 
@@ -79,7 +91,12 @@ def generate_questions(
         raise ValueError("cfg_model must provide 'name' or 'model_name'")
 
     tokenizer_name = cfg_model.get("tokenizer") or model_name
-    max_input_len = int(cfg_model.get("max_input_len", 512))
+    max_input_len = int(
+        cfg_model.get("max_input_len")
+        or cfg_decoding.get("max_input_len")
+        or cfg_task.get("max_input_len")
+        or 512
+    )
     batch_size = int(cfg_model.get("batch_size", 8))
     seed = int(cfg_model.get("seed", 42))
 
@@ -88,6 +105,12 @@ def generate_questions(
     resolved_device = _resolve_device(device)
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(resolved_device)
+
+    model.config.pad_token_id = tokenizer.pad_token_id
+    if getattr(model.config, "decoder_start_token_id", None) is None:
+        model.config.decoder_start_token_id = tokenizer.pad_token_id
+    if getattr(model.config, "eos_token_id", None) is None and tokenizer.eos_token_id is not None:
+        model.config.eos_token_id = tokenizer.eos_token_id
 
     records_list = list(records)
     prompts: MutableSequence[str] = []
@@ -102,36 +125,39 @@ def generate_questions(
         if context is None:
             raise ValueError("Each record must include 'context'")
         answer = _extract_answer(record)
-        prompt = build_prompt(
-            context=str(context),
-            answer=answer,
-            mode=mode,
-            wh_type=wh_forced,
-            lang=lang,
-        )
+        try:
+            prompt = build_prompt(
+                context=str(context),
+                answer=answer,
+                mode=mode,
+                wh_type=wh_forced,
+                lang=lang,
+            )
+        except ValueError as exc:  # pragma: no cover - defensive skip
+            LOGGER.warning("Skipping record %s: %s", record.get("id", idx), exc)
+            continue
         prompts.append(prompt)
-        prompt_meta.append({
-            "id": record.get("id", idx),
-            "answer": answer,
-            "raw_lang": record.get("lang", lang),
-        })
+        prompt_meta.append(
+            {
+                "id": record.get("id", idx),
+                "answer": answer,
+                "raw_lang": record.get("lang", lang),
+            }
+        )
 
+    min_new = max(8, int(cfg_decoding.get("min_new_tokens", 8)))
+    max_new = max(min_new + 4, int(cfg_decoding.get("max_new_tokens", 32)))
     generation_kwargs: Dict[str, object] = {
-        "max_new_tokens": int(cfg_decoding.get("max_new_tokens", 32)),
-        "min_new_tokens": int(cfg_decoding.get("min_new_tokens", 0)),
-        "no_repeat_ngram_size": int(cfg_decoding.get("no_repeat_ngram_size", 0)),
+        "max_new_tokens": max_new,
+        "min_new_tokens": min_new,
+        "no_repeat_ngram_size": max(3, int(cfg_decoding.get("no_repeat_ngram_size", 3))),
         "repetition_penalty": float(cfg_decoding.get("repetition_penalty", 1.0)),
+        "length_penalty": float(cfg_decoding.get("length_penalty", 1.0)),
     }
 
     strategy = str(cfg_decoding.get("strategy", "beam")).lower()
     if strategy == "beam":
-        generation_kwargs.update(
-            {
-                "num_beams": int(cfg_decoding.get("num_beams", 4)),
-                "length_penalty": float(cfg_decoding.get("length_penalty", 1.0)),
-                "do_sample": False,
-            }
-        )
+        generation_kwargs.update({"num_beams": int(cfg_decoding.get("num_beams", 4)), "do_sample": False})
     elif strategy in {"topp", "top-p", "top_p"}:
         generation_kwargs.update(
             {
@@ -160,15 +186,48 @@ def generate_questions(
         tokenized = {k: v.to(resolved_device) for k, v in tokenized.items()}
         prompt_lengths = tokenized["attention_mask"].sum(dim=1).tolist()
 
-        generated = model.generate(**tokenized, **generation_kwargs)
-        decoded = tokenizer.batch_decode(generated, skip_special_tokens=True)
+        with torch.no_grad():
+            generated = model.generate(
+                **tokenized,
+                **generation_kwargs,
+                return_dict_in_generate=True,
+            )
+        decoded_raw = tokenizer.batch_decode(
+            generated.sequences, skip_special_tokens=True, clean_up_tokenization_spaces=True
+        )
+        decoded = [_apply_question_postprocessing(text).strip() for text in decoded_raw]
 
-        for meta, prompt_len, raw_question, decoded_ids in zip(
-            batch_meta, prompt_lengths, decoded, generated
+        for idx_in_batch, (meta, prompt_len, question, decoded_ids, raw_text) in enumerate(
+            zip(batch_meta, prompt_lengths, decoded, generated.sequences, decoded_raw)
         ):
-            question = _apply_question_postprocessing(raw_question)
             wh_detected = _detect_wh_type(question, lang)
             gen_len = int((decoded_ids != tokenizer.pad_token_id).sum().item())
+            decoding_used = {"strategy": strategy, **generation_kwargs}
+
+            if _looks_empty_or_punct(question):
+                regen_kwargs = {
+                    **generation_kwargs,
+                    "do_sample": True,
+                    "top_p": float(cfg_decoding.get("top_p", 0.9)),
+                    "temperature": float(cfg_decoding.get("temperature", 0.9)),
+                    "num_beams": 1,
+                }
+                single_tokenized = {k: v[idx_in_batch : idx_in_batch + 1] for k, v in tokenized.items()}
+                with torch.no_grad():
+                    regen = model.generate(
+                        **single_tokenized,
+                        **regen_kwargs,
+                        return_dict_in_generate=True,
+                    )
+                regen_raw = tokenizer.batch_decode(
+                    regen.sequences, skip_special_tokens=True, clean_up_tokenization_spaces=True
+                )[0]
+                regen_question = _apply_question_postprocessing(regen_raw).strip()
+                question = regen_question or question
+                raw_text = regen_raw or raw_text
+                decoded_ids = regen.sequences[0]
+                gen_len = int((decoded_ids != tokenizer.pad_token_id).sum().item())
+                decoding_used = {"strategy": "topp_regen", **regen_kwargs}
 
             outputs.append(
                 {
@@ -177,9 +236,25 @@ def generate_questions(
                     "wh_type": wh_detected,
                     "prompt_len": int(prompt_len),
                     "gen_len": gen_len,
-                    "decoding": {"strategy": strategy, **generation_kwargs},
+                    "decoding": decoding_used,
+                    "raw_output": raw_text.strip(),
+                    "invalid_generation": _looks_empty_or_punct(question),
                 }
             )
+
+    if debug and prompts:
+        target_dir = Path(run_dir or cfg_task.get("run_dir") or ".")
+        target_dir.mkdir(parents=True, exist_ok=True)
+        debug_payload = {
+            "prompt": prompts[0],
+            "decoding": outputs[0]["decoding"] if outputs else generation_kwargs,
+            "gen_len": outputs[0].get("gen_len") if outputs else None,
+            "raw_output": outputs[0].get("raw_output") if outputs else None,
+            "normalized_output": outputs[0].get("question") if outputs else None,
+        }
+        with (target_dir / "debug_gen.txt").open("w", encoding="utf-8") as f:
+            for key, value in debug_payload.items():
+                f.write(f"{key.upper()}:\n{value}\n\n")
 
     return outputs
 

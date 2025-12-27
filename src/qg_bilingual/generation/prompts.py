@@ -6,25 +6,45 @@ optional wh-type constraints in English and Ukrainian.
 
 from __future__ import annotations
 
+import logging
 from typing import Optional
 
 from qg_bilingual.data import normalize_text
 
-AWARE_TEMPLATE = """
-<question_generation>
-  <instruction>Generate a concise factoid wh-question about the highlighted answer from the context.</instruction>
-  <context>{context}</context>
-  <answer>{answer}</answer>
-  {wh_constraint}
-</question_generation>
+LOGGER = logging.getLogger(__name__)
+
+AWARE_TEMPLATE_EN = """
+qg: generate a concise factual wh-question in English from the context and the given answer.
+<context>
+{context}
+</context>
+<answer>{answer}</answer>
+{wh_constraint}
 """.strip()
 
-AGNOSTIC_TEMPLATE = """
-<question_generation>
-  <instruction>Generate a concise factoid wh-question grounded only in the context (no assumptions).</instruction>
-  <context>{context}</context>
-  {wh_constraint}
-</question_generation>
+AWARE_TEMPLATE_UA = """
+qg: згенеруй лаконічне фактологічне wh-питання українською на основі контексту та наведеної відповіді.
+<context>
+{context}
+</context>
+<answer>{answer}</answer>
+{wh_constraint}
+""".strip()
+
+AGNOSTIC_TEMPLATE_EN = """
+qg: generate a concise factual wh-question in English grounded only in the context (do not assume missing facts).
+<context>
+{context}
+</context>
+{wh_constraint}
+""".strip()
+
+AGNOSTIC_TEMPLATE_UA = """
+qg: згенеруй лаконічне фактологічне wh-питання українською лише з контексту (без припущень).
+<context>
+{context}
+</context>
+{wh_constraint}
 """.strip()
 
 WH_KEYWORDS = {
@@ -61,8 +81,6 @@ def _format_constraint(wh_type: Optional[str], lang: str) -> str:
         keyword = WH_KEYWORDS["en"].get(normalized_wh, normalized_wh)
 
     return f"<constraints>Produce a {keyword} question.</constraints>"
-
-
 def build_prompt(
     *,
     context: str,
@@ -85,14 +103,33 @@ def build_prompt(
     normalized_context = normalize_text(context)
     normalized_answer = normalize_text(answer) if answer else ""
 
+    if len(normalized_context.split()) < 20:
+        raise ValueError("Context too short for question generation (reason=too_short_context)")
+
+    templates = {
+        ("aware", "en"): AWARE_TEMPLATE_EN,
+        ("aware", "ua"): AWARE_TEMPLATE_UA,
+        ("agnostic", "en"): AGNOSTIC_TEMPLATE_EN,
+        ("agnostic", "ua"): AGNOSTIC_TEMPLATE_UA,
+    }
+
     if mode == "agnostic":
-        return AGNOSTIC_TEMPLATE.format(context=normalized_context, wh_constraint=constraint)
+        template = templates.get(("agnostic", lang.lower()), AGNOSTIC_TEMPLATE_EN)
+        return template.format(context=normalized_context, wh_constraint=constraint)
 
-    return AWARE_TEMPLATE.format(
-        context=normalized_context,
-        answer=normalized_answer,
-        wh_constraint=constraint,
-    )
+    if not normalized_answer:
+        LOGGER.warning("Skipping record without answer in aware mode")
+        raise ValueError("Missing answer for aware prompt")
+
+    template = templates.get(("aware", lang.lower()), AWARE_TEMPLATE_EN)
+    return template.format(context=normalized_context, answer=normalized_answer, wh_constraint=constraint)
 
 
-__all__ = ["build_prompt", "WH_KEYWORDS", "AWARE_TEMPLATE", "AGNOSTIC_TEMPLATE"]
+__all__ = [
+    "build_prompt",
+    "WH_KEYWORDS",
+    "AWARE_TEMPLATE_EN",
+    "AWARE_TEMPLATE_UA",
+    "AGNOSTIC_TEMPLATE_EN",
+    "AGNOSTIC_TEMPLATE_UA",
+]
