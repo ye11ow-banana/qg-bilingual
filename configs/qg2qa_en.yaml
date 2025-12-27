@@ -1,11 +1,11 @@
 lang: en
-qa_model: distilbert-base-uncased-distilled-squad
+qa_model: deepset/roberta-base-squad2
 device: auto
 batch_size: 8
 max_context_tokens: 384
 thresholds:
-  f1_pass: 0.8
-  conf_pass: 0.35
+  f1_pass: 0.6
+  conf_pass: 0.2
 normalization:
   strip_punct: true
   lower: true

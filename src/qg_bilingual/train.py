@@ -243,21 +243,37 @@ def evaluate(
     return metrics, generated_texts, reference_texts
 
 
-def save_samples(path: Path, records: Sequence, predictions: Sequence[str], limit: int = 100) -> None:
+def save_samples(
+    path: Path,
+    records: Sequence,
+    predictions: Sequence[str],
+    *,
+    limit: int = 100,
+    mode: str = "aware",
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    saved = 0
     with path.open("w", encoding="utf-8") as f:
-        for record, prediction in list(zip(records, predictions))[:limit]:
+        for record, prediction in list(zip(records, predictions)):
+            answer = getattr(record, "answer", "")
+            if mode.lower() == "aware" and not str(answer).strip():
+                continue
+
             cleaned_prediction = prediction.strip()
             payload = {
                 "context": getattr(record, "context", ""),
-                "answer": getattr(record, "answer", ""),
+                "answer": answer,
+                "gold_answer": answer,
                 "reference_question": getattr(record, "question", ""),
                 "generated_question": cleaned_prediction,
                 "question_len": len(cleaned_prediction.split()),
                 "invalid_generation": len(cleaned_prediction) == 0,
             }
             f.write(json.dumps(payload, ensure_ascii=False) + "\n")
-    LOGGER.info("Saved %s samples to %s", min(limit, len(predictions)), path)
+            saved += 1
+            if saved >= limit:
+                break
+    LOGGER.info("Saved %s samples to %s", saved, path)
 
 
 def save_metrics(path: Path, payload: Dict[str, object]) -> None:
@@ -420,7 +436,7 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
 
 def _save_generation_artifacts(cfg: TrainConfig, val_records: Sequence, predictions: Sequence[str]) -> None:
     samples_path = cfg.eval.samples_path or cfg.output_dir / "samples_val.jsonl"
-    save_samples(samples_path, val_records, predictions, limit=100)
+    save_samples(samples_path, val_records, predictions, limit=100, mode=cfg.task.mode)
 
 
 def _build_metrics_payload(cfg: TrainConfig, metrics: Dict[str, float]) -> Dict[str, object]:
