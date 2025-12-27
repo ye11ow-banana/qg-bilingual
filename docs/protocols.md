@@ -13,7 +13,9 @@
 uv run python -m src.qg_bilingual.eval.qg2qa \
   --config configs/qg2qa_en.yaml \
   --input runs/<exp>/samples_val.jsonl \
-  --out runs/<exp>/
+  --out runs/<exp>/ \
+  --question-field question \
+  --gold-field gold_answer
 ```
 
 ## MOS

@@ -40,6 +40,7 @@ class QG2QARunConfig:
     device: str = "auto"
     batch_size: int = 16
     max_context_tokens: int = 512
+    question_field: str = "question"
     gold_field: str = "gold_answer"
     thresholds: Thresholds = field(default_factory=Thresholds)
     normalization: NormalizationConfig = field(default_factory=NormalizationConfig)
@@ -76,6 +77,7 @@ def _load_config(path: Path) -> QG2QARunConfig:
         device=str(raw.get("device", "auto")),
         batch_size=int(raw.get("batch_size", 16)),
         max_context_tokens=int(raw.get("max_context_tokens", 512)),
+        question_field=str(raw.get("question_field", "question")),
         gold_field=str(raw.get("gold_field", "gold_answer")),
         thresholds=Thresholds(
             f1_pass=float(thresholds.get("f1_pass", 0.8)),
@@ -201,7 +203,7 @@ def _prepare_examples(
     valid: List[QAExample] = []
     counts = {"total": len(raw_rows), "invalid": 0, "lang_mismatch": 0, "unanswerable": 0}
     for idx, row in enumerate(raw_rows):
-        question = str(row.get("question", "")).strip()
+        question = str(row.get(config.question_field, row.get("question", ""))).strip()
         context = str(row.get("context", "")).strip()
         gold = str(row.get(config.gold_field, row.get("answer", "")))
         unanswerable = bool(row.get("unanswerable", False))
@@ -338,6 +340,7 @@ def _aggregate(details: Sequence[Dict[str, object]]) -> Dict[str, object]:
         pass_rate = mean(float(row.get("passed", False)) for row in eligible)
     else:
         em = f1 = pass_rate = 0.0
+    included = len(eligible)
 
     buckets: Dict[str, List[Dict[str, object]]] = {"q<=8": [], "8<q<=16": [], ">16": []}
     for row in eligible:
@@ -403,6 +406,7 @@ def evaluate_examples(
 
     summary = _aggregate(details)
     summary["conf_type"] = "start_end_prob"
+    summary["included"] = included
     return summary, details
 
 
@@ -416,22 +420,22 @@ def run_qg2qa(config: QG2QARunConfig, include_unanswerable: bool) -> Tuple[Dict[
     examples, counts = _prepare_examples(raw_rows, bundle, config)
     summary, details = evaluate_examples(examples, bundle, config, include_unanswerable)
 
+    skipped_unanswerable = counts.get("unanswerable", 0) if not include_unanswerable else 0
     summary_payload = {
-        "lang": config.lang,
+        "em": summary.get("em", 0.0),
+        "f1": summary.get("f1", 0.0),
+        "qa_pass_rate": summary.get("pass_rate", 0.0),
         "qa_model": config.qa_model,
-        "thresholds": {
-            "f1_pass": config.thresholds.f1_pass,
-            "conf_pass": config.thresholds.conf_pass,
-        },
+        "lang": config.lang,
+        "f1_thr": config.thresholds.f1_pass,
+        "conf_thr": config.thresholds.conf_pass,
+        "included": summary.get("included", 0),
+        "skipped_unanswerable": skipped_unanswerable,
         "counts": counts,
         "metrics": summary,
-        "conf_type": "start_end_prob",
+        "qa_device": bundle.device_label,
         "include_unanswerable": include_unanswerable,
     }
-    summary_payload["em"] = summary.get("em", 0.0)
-    summary_payload["f1"] = summary.get("f1", 0.0)
-    summary_payload["pass_rate"] = summary.get("pass_rate", 0.0)
-    summary_payload["qa_device"] = bundle.device_label
     return summary_payload, details, counts
 
 
@@ -450,12 +454,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--input", type=Path, help="Override input_jsonl from config")
     parser.add_argument("--out", type=Path, help="Override out_dir from config")
     parser.add_argument(
+        "--question-field",
+        type=str,
+        default="question",
+        help="Name of the JSONL field containing the generated question",
+    )
+    parser.add_argument(
         "--gold-field",
         type=str,
         default="gold_answer",
         help="Name of the JSONL field containing the gold answer",
     )
-    parser.add_argument("--include-unanswerable", action="store_true", help="Evaluate unanswerable rows as no-answer spans")
+    parser.add_argument(
+        "--include-unanswerable",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Evaluate unanswerable rows as no-answer spans",
+    )
     return parser.parse_args()
 
 
@@ -467,6 +482,8 @@ def main() -> None:
         config.io.input_jsonl = args.input
     if args.out:
         config.io.out_dir = args.out
+    if args.question_field:
+        config.question_field = args.question_field
     if args.gold_field:
         config.gold_field = args.gold_field
 
@@ -518,7 +535,7 @@ def qg2qa_metrics(
                 "id": getattr(record, "id", idx),
                 "question": getattr(record, "question", getattr(record, "generated_question", "")),
                 "context": getattr(record, "context", ""),
-                "gold_answer": getattr(record, "answer", ""),
+                "gold_answer": getattr(record, "gold_answer", getattr(record, "answer", "")),
                 "unanswerable": getattr(record, "unanswerable", False),
                 "lang": getattr(record, "lang", lang),
             }
@@ -535,6 +552,8 @@ def qg2qa_metrics(
         "qa_device": device_label,
         "f1_thr": f1_thr,
         "conf_thr": conf_thr,
+        "included": summary.get("included", 0),
+        "skipped_unanswerable": 0,
     }
 
 

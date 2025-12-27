@@ -1,5 +1,7 @@
 import pytest
 
+import pytest
+
 from qg_bilingual.generation.prompts import AWARE_TEMPLATE, AGNOSTIC_TEMPLATE, WH_KEYWORDS, build_prompt
 
 
@@ -20,9 +22,9 @@ def test_prompt_includes_expected_tags(mode: str, template: str):
     assert template.split("\n")[1].strip() in template  # sanity check template contains instruction
 
     if mode == "aware":
-        assert "<answer>kyiv</answer>" in prompt.lower()
+        assert "exact short answer" in prompt.lower() or "точною короткою відповіддю" in prompt.lower()
     else:
-        assert "<answer>" not in prompt
+        assert "exact short answer" not in prompt.lower()
 
 
 @pytest.mark.parametrize("lang, wh_type", [("en", "when"), ("ua", "when"), ("xx", "why")])

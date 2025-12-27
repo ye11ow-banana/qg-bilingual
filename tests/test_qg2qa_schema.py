@@ -1,5 +1,7 @@
 import pytest
 
+pytest.importorskip("torch")
+
 from qg_bilingual.eval.normalize import NormalizationConfig, Normalizer
 from qg_bilingual.eval.qg2qa import (
     QAExample,
