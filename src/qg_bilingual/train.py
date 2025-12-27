@@ -116,6 +116,23 @@ def compute_metrics(
     rouge_metric,
     bleu_metric,
 ) -> Dict[str, float]:
+    def _extract_f1(score) -> float:
+        """Handle rouge score objects across evaluate versions.
+
+        Newer versions of ``evaluate`` return simple floats while older ones
+        expose a ``mid.fmeasure`` attribute. This helper normalises both
+        shapes to a plain float.
+        """
+
+        if hasattr(score, "mid"):
+            return score.mid.fmeasure
+        if isinstance(score, dict):
+            if "mid" in score and hasattr(score["mid"], "fmeasure"):
+                return score["mid"].fmeasure
+            if "fmeasure" in score:
+                return score["fmeasure"]
+        return float(score)
+
     rouge_scores = rouge_metric.compute(
         predictions=predictions, references=references, use_stemmer=True
     )
@@ -123,9 +140,9 @@ def compute_metrics(
         predictions=predictions, references=[[ref] for ref in references]
     )
     return {
-        "rouge1": rouge_scores["rouge1"].mid.fmeasure,
-        "rouge2": rouge_scores["rouge2"].mid.fmeasure,
-        "rougeL": rouge_scores["rougeL"].mid.fmeasure,
+        "rouge1": _extract_f1(rouge_scores["rouge1"]),
+        "rouge2": _extract_f1(rouge_scores["rouge2"]),
+        "rougeL": _extract_f1(rouge_scores["rougeL"]),
         "bleu": bleu_scores.get("score", 0.0),
     }
 
