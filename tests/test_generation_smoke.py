@@ -10,7 +10,7 @@ from qg_bilingual.generation.generate import generate_questions
 @pytest.mark.parametrize("strategy", ["beam", "topp"])
 def test_t5_generate_non_empty(strategy: str, tmp_path):
     cfg_model = {
-        "name": "google/t5-efficient-tiny",
+        "name": "google/flan-t5-small",
         "max_input_len": 128,
         "batch_size": 1,
         "seed": 0,
@@ -21,8 +21,9 @@ def test_t5_generate_non_empty(strategy: str, tmp_path):
         "length_penalty": 1.0,
         "top_p": 0.9,
         "temperature": 0.9,
-        "max_new_tokens": 16,
-        "min_new_tokens": 4,
+        "max_new_tokens": 24,
+        "min_new_tokens": 8,
+        "no_repeat_ngram_size": 3,
     }
     cfg_task = {"mode": "aware", "lang": "en", "run_dir": str(tmp_path)}
     records = [

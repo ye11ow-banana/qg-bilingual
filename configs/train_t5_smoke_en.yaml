@@ -1,4 +1,4 @@
-model: google/t5-efficient-tiny
+model: google/flan-t5-small
 output_dir: runs/t5_smoke_en/
 task:
   mode: aware
@@ -27,6 +27,8 @@ decoding:
   num_beams: 4
   length_penalty: 1.0
   no_repeat_ngram_size: 3
+  min_new_tokens: 8
+  max_new_tokens: 32
 eval:
   compute: [rouge]
   save_metrics_to: runs/t5_smoke_en/metrics_val.json
