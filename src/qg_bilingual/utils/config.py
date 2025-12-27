@@ -35,6 +35,30 @@ class TrainSettings:
     early_stopping_patience: int = 3
     seed: int = 42
 
+    def __post_init__(self) -> None:
+        """Normalize numeric values loaded from YAML.
+
+        Some YAML parsers may return numbers as strings (for example when the
+        values are quoted). Casting here ensures downstream consumers such as
+        optimizers receive the expected numeric types.
+        """
+
+        self.lr = float(self.lr)
+        self.weight_decay = float(self.weight_decay)
+        self.epochs = int(self.epochs)
+        self.batch_per_device = int(self.batch_per_device)
+        self.grad_accum = int(self.grad_accum)
+        self.max_input_len = int(self.max_input_len)
+        self.max_target_len = int(self.max_target_len)
+        self.label_smoothing = float(self.label_smoothing)
+        self.dropout = float(self.dropout)
+        self.warmup_ratio = float(self.warmup_ratio)
+        self.eval_every_steps = (
+            None if self.eval_every_steps is None else int(self.eval_every_steps)
+        )
+        self.early_stopping_patience = int(self.early_stopping_patience)
+        self.seed = int(self.seed)
+
 
 @dataclass
 class PeftConfig:
