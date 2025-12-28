@@ -280,7 +280,14 @@ def _predict_batch(
     predictions: List[Prediction] = []
     offset_mapping = encoding["offset_mapping"].tolist()
     for i, example in enumerate(examples):
-        sequence_ids = encoding.encodings[i].sequence_ids()
+        # `sequence_ids` may be an attribute (list) or a callable depending on the
+        # tokenizer version; handle both cases for compatibility.
+        sequence_ids_fn_or_list = encoding.encodings[i].sequence_ids
+        sequence_ids = (
+            sequence_ids_fn_or_list()
+            if callable(sequence_ids_fn_or_list)
+            else sequence_ids_fn_or_list
+        )
         start_logits = outputs.start_logits[i]
         end_logits = outputs.end_logits[i]
         offsets = offset_mapping[i]
