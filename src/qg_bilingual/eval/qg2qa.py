@@ -427,6 +427,14 @@ def run_qg2qa(config: QG2QARunConfig, include_unanswerable: bool) -> Tuple[Dict[
     examples, counts = _prepare_examples(raw_rows, bundle, config)
     summary, details = evaluate_examples(examples, bundle, config, include_unanswerable)
 
+    if summary.get("included", 0) == 0:
+        LOGGER.warning(
+            "No rows were included in QG→QA metrics (include_unanswerable=%s, valid=%s, unanswerable=%s)",
+            include_unanswerable,
+            counts.get("valid", 0),
+            counts.get("unanswerable", 0),
+        )
+
     skipped_unanswerable = counts.get("unanswerable", 0) if not include_unanswerable else 0
     summary_payload = {
         "em": summary.get("em", 0.0),
