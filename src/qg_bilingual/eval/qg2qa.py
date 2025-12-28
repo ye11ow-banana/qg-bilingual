@@ -388,6 +388,7 @@ def _aggregate(details: Sequence[Dict[str, object]]) -> Dict[str, object]:
         "by_len_bucket": bucket_metrics,
         "by_wh_type": wh_metrics,
         "f1_histogram": {"bins": f1_hist_bins, "counts": f1_hist_counts},
+        "included": included,
     }
 
 
@@ -406,7 +407,6 @@ def evaluate_examples(
 
     summary = _aggregate(details)
     summary["conf_type"] = "start_end_prob"
-    summary["included"] = included
     return summary, details
 
 
