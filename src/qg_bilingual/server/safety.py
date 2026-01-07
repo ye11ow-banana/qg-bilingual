@@ -59,7 +59,9 @@ class Policy:
             return False
 
         for group in self.protected_groups:
-            if group in lowered_question and group not in lowered_context:
+            if re.search(rf"\b{re.escape(group.lower())}\b", lowered_question) and not re.search(
+                rf"\b{re.escape(group.lower())}\b", lowered_context
+            ):
                 return False
         return True
 

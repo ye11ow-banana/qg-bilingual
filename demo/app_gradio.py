@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -67,7 +68,8 @@ def make_app(client: QGClient, dev_mode: bool) -> gr.Blocks:
     examples = load_examples()
     example_names = [ex["name"] for ex in examples]
 
-    with gr.Blocks(title="QG Bilingual Demo", css=".compact-json textarea{font-size:12px}") as demo:
+    with gr.Blocks(title="QG Bilingual Demo") as demo:
+        gr.HTML("<style>.compact-json textarea{font-size:12px}</style>")
         gr.Markdown("# Safety-aware Question Generation Demo")
         with gr.Row():
             with gr.Column():
@@ -96,7 +98,7 @@ def make_app(client: QGClient, dev_mode: bool) -> gr.Blocks:
                         label="Mode",
                     )
                     wh_in = gr.Dropdown(
-                        choices=["auto", "who", "when", "where", "what", "why", "how"],
+                        choices=["auto", "who", "when", "where", "what", "why", "how", "how_many"],
                         value="auto",
                         label="WH type",
                     )
@@ -114,7 +116,6 @@ def make_app(client: QGClient, dev_mode: bool) -> gr.Blocks:
                     label="Question",
                     lines=2,
                     interactive=False,
-                    show_copy_button=True,
                 )
                 reasons_md = gr.HTML(label="Reasons")
                 metrics_table = gr.Dataframe(
@@ -130,7 +131,6 @@ def make_app(client: QGClient, dev_mode: bool) -> gr.Blocks:
                 label="Full response JSON",
                 lines=6,
                 interactive=False,
-                show_copy_button=True,
             )
             copy_btn = gr.Button("Copy JSON")
             if dev_mode:
@@ -222,6 +222,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--config", dest="config", default=None)
     parser.add_argument("--dev", action="store_true", help="Enable dev-only controls")
     parser.add_argument("--share", action="store_true", help="Enable Gradio sharing")
+    parser.add_argument(
+        "--host",
+        default=os.getenv("GRADIO_SERVER_NAME", "0.0.0.0"),
+        help="Bind host for the Gradio server (default: 0.0.0.0 or GRADIO_SERVER_NAME)",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=int(os.getenv("GRADIO_SERVER_PORT", "7860")),
+        help="Bind port for the Gradio server (default: 7860 or GRADIO_SERVER_PORT)",
+    )
     return parser.parse_args()
 
 
@@ -229,7 +240,7 @@ def main() -> None:
     args = parse_args()
     client = QGClient(mode=args.mode, server_url=args.server_url, config=args.config)
     app = make_app(client, dev_mode=args.dev)
-    app.launch(show_error=True, share=args.share)
+    app.launch(show_error=True, share=args.share, server_name=args.host, server_port=args.port)
 
 
 if __name__ == "__main__":

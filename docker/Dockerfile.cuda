@@ -12,6 +12,11 @@ RUN python3.11 -m pip install --no-cache-dir uv
 
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
+COPY README.md ./
+
+# uv installs the local project (`qg-bilingual @ file:///app`) during sync,
+# so the package sources must be present at this point.
+COPY src ./src
 RUN uv sync --no-dev
 
 COPY . .

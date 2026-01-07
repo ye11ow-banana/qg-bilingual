@@ -7,7 +7,7 @@ services:
     env_file: .env
     environment:
       - HF_HOME=/cache/hf
-      - SERVER_CONFIG=server/config.yaml
+      - QG_SERVER_CONFIG=src/qg_bilingual/server/config.yaml
     volumes:
       - hf-cache:/cache/hf
     ports:
@@ -23,10 +23,12 @@ services:
       context: .
       dockerfile: docker/Dockerfile.cpu
     image: ghcr.io/zakazglobal/qg-bilingual-demo:latest-cpu
-    command: ["bash","docker/entrypoint_demo.sh"]
+    entrypoint: ["bash","docker/entrypoint_demo.sh"]
     environment:
       - DEMO_MODE=http
       - SERVER_URL=http://api:8000
+      - GRADIO_SERVER_NAME=0.0.0.0
+      - GRADIO_SERVER_PORT=7860
       - HF_HOME=/cache/hf
     volumes:
       - hf-cache:/cache/hf
@@ -44,7 +46,7 @@ services:
     env_file: .env
     environment:
       - HF_HOME=/cache/hf
-      - SERVER_CONFIG=server/config.yaml
+      - QG_SERVER_CONFIG=src/qg_bilingual/server/config.yaml
     volumes:
       - hf-cache:/cache/hf
     ports:
@@ -63,10 +65,12 @@ services:
       context: .
       dockerfile: docker/Dockerfile.cuda
     image: ghcr.io/zakazglobal/qg-bilingual-demo:latest-cuda
-    command: ["bash","docker/entrypoint_demo.sh"]
+    entrypoint: ["bash","docker/entrypoint_demo.sh"]
     environment:
       - DEMO_MODE=http
       - SERVER_URL=http://api-gpu:8000
+      - GRADIO_SERVER_NAME=0.0.0.0
+      - GRADIO_SERVER_PORT=7860
       - HF_HOME=/cache/hf
     volumes:
       - hf-cache:/cache/hf

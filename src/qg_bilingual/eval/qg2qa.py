@@ -207,7 +207,7 @@ def _prepare_examples(
         context = str(row.get("context", "")).strip()
         gold = str(row.get(config.gold_field, row.get("answer", "")))
         unanswerable = bool(row.get("unanswerable", False))
-        lang = str(row.get("lang", config.lang)).lower()
+        lang = str(row.get("lang", "")).strip().lower() or config.lang.lower()
         wh_type = row.get("wh_type")
 
         if lang and lang != config.lang.lower():

@@ -19,7 +19,7 @@ class NormalizationConfig:
 
 
 class Normalizer:
-    def __init__(self, config: NormalizationConfig, lang: str) -> None:
+    def __init__(self, config: NormalizationConfig, lang: str = "en") -> None:
         self.config = config
         self.lang = lang.lower()
 

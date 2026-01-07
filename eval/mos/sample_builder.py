@@ -20,14 +20,58 @@ from typing import Any, Dict, List, Mapping, MutableMapping, Sequence, Tuple
 BucketKey = Tuple[str, str, str, str, str]
 
 
+def _infer_defaults_from_path(path: Path) -> Dict[str, str]:
+    """Infer missing metadata for MOS from the input file location.
+
+    Common convention in this repo: runs/<run_name>/samples_val.jsonl
+    where <run_name> may include tokens like *_aware_* and *_en/*_ua.
+    """
+
+    run_name = path.parent.name
+    lowered = run_name.lower()
+
+    mode = ""
+    if "aware" in lowered:
+        mode = "aware"
+    elif "agnostic" in lowered:
+        mode = "agnostic"
+
+    lang = ""
+    # Prefer explicit suffix token.
+    for token in ("_en", "-en", "/en", "_ua", "-ua", "/ua"):
+        if lowered.endswith(token):
+            lang = token[-2:]
+            break
+    if not lang:
+        # Fallback to any token occurrence.
+        if "_en" in lowered or "-en" in lowered:
+            lang = "en"
+        elif "_ua" in lowered or "-ua" in lowered:
+            lang = "ua"
+
+    return {
+        "model": run_name,
+        "mode": mode,
+        "lang": lang,
+    }
+
+
 def _load_jsonl(path: Path) -> List[MutableMapping[str, Any]]:
     records: List[MutableMapping[str, Any]] = []
+    defaults = _infer_defaults_from_path(path)
     with path.open("r", encoding="utf-8") as f:
-        for line in f:
+        for idx, line in enumerate(f):
             line = line.strip()
             if not line:
                 continue
-            records.append(json.loads(line))
+            row = json.loads(line)
+            # Attach origin for stable IDs/defaults.
+            row.setdefault("__source", str(path))
+            row.setdefault("__idx", idx)
+            for key, value in defaults.items():
+                if not str(row.get(key, "") or "").strip():
+                    row[key] = value
+            records.append(row)
     return records
 
 
@@ -95,12 +139,20 @@ def build_batch(records: Sequence[MutableMapping[str, Any]], size: int, seed: in
             continue
         rng.shuffle(rows)
         for row in rows[:take]:
+            raw_id = row.get("id")
+            if raw_id is None or str(raw_id).strip().lower() == "none" or str(raw_id).strip() == "":
+                raw_id = f"{row.get('__source','?')}:{row.get('__idx','?')}"
+
+            lang = str(row.get("lang", "") or "").strip().lower() or "unk"
+            model = str(row.get("model", "") or "").strip() or "model?"
+            mode = str(row.get("mode", "") or "").strip().lower() or "mode?"
+
             sampled.append(
                 {
-                    "id": str(row.get("id")),
-                    "lang": str(row.get("lang", "")),
-                    "model": str(row.get("model", "")),
-                    "mode": str(row.get("mode", "")),
+                    "id": str(raw_id),
+                    "lang": lang,
+                    "model": model,
+                    "mode": mode,
                     "context": row.get("context", ""),
                     "question": row.get("question", ""),
                     "reference": row.get("reference") or row.get("answer") or row.get("gold_answer", ""),

@@ -20,7 +20,7 @@ class GenerateRequest(BaseModel):
     mode: Literal["aware", "agnostic"] = Field(
         "aware", description="aware -> use answer, agnostic -> context only"
     )
-    wh_type: Optional[Literal["who", "when", "where", "what", "why", "how"]] = (
+    wh_type: Optional[Literal["who", "when", "where", "what", "why", "how", "how_many"]] = (
         Field(None, description="Optional wh-constraint for generation")
     )
 

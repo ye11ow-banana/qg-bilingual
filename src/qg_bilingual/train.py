@@ -250,9 +250,22 @@ def save_samples(
     *,
     limit: int = 100,
     mode: str = "aware",
+    lang: str | None = None,
+    model_name: str | None = None,
 ) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     saved = 0
+    def _detect_wh(question: str) -> str | None:
+        cleaned = question.strip().lower()
+        if not cleaned:
+            return None
+        if cleaned.startswith("how many"):
+            return "how_many"
+        first = cleaned.split()[0].strip("?.,! ")
+        if first in {"who", "when", "where", "what", "why", "how", "хто", "коли", "де", "чому", "як", "що"}:
+            return first
+        return None
+
     with path.open("w", encoding="utf-8") as f:
         for record, prediction in list(zip(records, predictions)):
             answer = getattr(record, "answer", "")
@@ -261,15 +274,35 @@ def save_samples(
                 continue
 
             cleaned_prediction = prediction.strip()
+
+            record_lang = str(getattr(record, "lang", "") or "").strip().lower()
+            if not record_lang:
+                record_lang = str(lang or "").strip().lower()
+            if not record_lang:
+                record_lang = "unk"
+
+            rec_id = getattr(record, "id", None)
+            if rec_id is None or str(rec_id).strip() == "":
+                rec_id = str(saved)
+
+            wh_type = getattr(record, "wh_type", None) or _detect_wh(cleaned_prediction)
+            invalid_generation = len(cleaned_prediction) == 0
+
             payload = {
+                "id": str(rec_id),
+                "model": str(model_name or path.parent.name),
+                "mode": mode,
                 "context": getattr(record, "context", ""),
                 "question": cleaned_prediction,
                 "gold_answer": cleaned_answer,
+                "reference": cleaned_answer,
                 "unanswerable": cleaned_answer == "",
-                "lang": getattr(record, "lang", ""),
+                "lang": record_lang,
+                "wh_type": wh_type,
                 "reference_question": getattr(record, "question", ""),
                 "question_len": len(cleaned_prediction.split()),
-                "invalid_generation": len(cleaned_prediction) == 0,
+                "invalid_generation": invalid_generation,
+                "passed": (not invalid_generation) and (cleaned_answer != ""),
             }
             f.write(json.dumps(payload, ensure_ascii=False) + "\n")
             saved += 1
@@ -438,7 +471,15 @@ def train(cfg: TrainConfig) -> Dict[str, float]:
 
 def _save_generation_artifacts(cfg: TrainConfig, val_records: Sequence, predictions: Sequence[str]) -> None:
     samples_path = cfg.eval.samples_path or cfg.output_dir / "samples_val.jsonl"
-    save_samples(samples_path, val_records, predictions, limit=100, mode=cfg.task.mode)
+    save_samples(
+        samples_path,
+        val_records,
+        predictions,
+        limit=100,
+        mode=cfg.task.mode,
+        lang=cfg.task.lang,
+        model_name=cfg.output_dir.name,
+    )
 
 
 def _build_metrics_payload(cfg: TrainConfig, metrics: Dict[str, float]) -> Dict[str, object]:

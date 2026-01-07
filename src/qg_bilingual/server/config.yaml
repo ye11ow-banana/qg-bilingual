@@ -33,7 +33,7 @@ thresholds:
 
 policy:
   context_only: true
-  allowed_wh: [who, when, where, what, why, how]
+  allowed_wh: [who, when, where, what, why, how, how_many]
 
 runtime:
   device: auto
